@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { PageProps, MergeLog } from '../types';
-import { runSlidesMerge, runDocsMerge, runSlidesPreview, runDocsPreview } from '../services/gasClient';
+import { runSlidesMerge, runDocsMerge, runSlidesPreview, runDocsPreview, addMergeLog } from '../services/gasClient';
 
 type MergeMode = 'slides' | 'docs';
 
@@ -93,7 +93,7 @@ export default function MargeItPage({ setModal, user }: PageProps) {
 
       if (response.error) throw new Error(response.error);
 
-      const newResults: MergeLog[] = response.urls.map((url: string, i: number) => ({
+      const newResults: MergeLog[] = response.data.urls.map((url: string, i: number) => ({
           sn: Date.now() + i,
           fileName: formData.outputFileName ? `${formData.outputFileName} (${i + 1})` : `Generated File ${i + 1}`,
           fileUrl: url,
@@ -103,7 +103,15 @@ export default function MargeItPage({ setModal, user }: PageProps) {
           timestamp: new Date().toLocaleString(),
           date: new Date().toISOString().split('T')[0],
           user: user?.email,
+          operation: runType === 'custom' ? 'Custom' : 'All In One',
+          templateId: formData.templateId,
       }));
+
+      // Save to Firebase
+      for (const result of newResults) {
+          await addMergeLog(result);
+      }
+
       setResults(prev => [...newResults, ...prev]);
 
     } catch (error: any) {
@@ -120,7 +128,13 @@ export default function MargeItPage({ setModal, user }: PageProps) {
           timestamp: new Date().toLocaleString(),
           date: new Date().toISOString().split('T')[0],
           user: user?.email,
+          operation: runType === 'custom' ? 'Custom' : 'All In One',
+          templateId: formData.templateId,
       };
+
+      // Save failed result to Firebase
+      await addMergeLog(failedResult);
+
       setResults(prev => [failedResult, ...prev]);
     } finally {
       setIsProcessing(false);
@@ -207,12 +221,29 @@ export default function MargeItPage({ setModal, user }: PageProps) {
   };
 
   const handleCopyLink = (url: string) => {
-    navigator.clipboard.writeText(url).then(() => alert('Link copied to clipboard!'));
+    navigator.clipboard.writeText(url).then(() => {
+        alert('Link copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy link: ', err);
+        alert('Failed to copy link to clipboard.');
+    });
     closeDropdown();
   };
 
   const handleDownload = (baseUrl: string, format: string) => {
-      const downloadUrl = `${baseUrl}/export?format=${format}`;
+      // Extract file ID from Google Docs/Slides URL
+      const fileIdMatch = baseUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      if (!fileIdMatch) {
+          alert('Invalid file URL format.');
+          closeDropdown();
+          return;
+      }
+      const fileId = fileIdMatch[1];
+      // Determine if it's docs or slides based on the URL
+      const isSlides = baseUrl.includes('presentation') || baseUrl.includes('slides');
+      const downloadUrl = isSlides
+          ? `https://docs.google.com/presentation/d/${fileId}/export?format=${format}`
+          : `https://docs.google.com/document/d/${fileId}/export?format=${format}`;
       window.open(downloadUrl, '_blank');
       closeDropdown();
   };

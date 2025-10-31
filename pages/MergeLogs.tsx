@@ -129,13 +129,29 @@ const MergeLogs: React.FC<PageProps> = ({ setModal }) => {
     };
 
     const handleCopyLink = (url: string) => {
-        navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Link copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy link: ', err);
+            alert('Failed to copy link to clipboard.');
+        });
         closeDropdown();
     };
 
     const handleDownload = (baseUrl: string, format: string) => {
-        const downloadUrl = `${baseUrl}/export?format=${format}`;
+        // Extract file ID from Google Docs/Slides URL
+        const fileIdMatch = baseUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        if (!fileIdMatch) {
+            alert('Invalid file URL format.');
+            closeDropdown();
+            return;
+        }
+        const fileId = fileIdMatch[1];
+        // Determine if it's docs or slides based on the URL
+        const isSlides = baseUrl.includes('presentation') || baseUrl.includes('slides');
+        const downloadUrl = isSlides
+            ? `https://docs.google.com/presentation/d/${fileId}/export?format=${format}`
+            : `https://docs.google.com/document/d/${fileId}/export?format=${format}`;
         window.open(downloadUrl, '_blank');
         closeDropdown();
     };
@@ -213,6 +229,7 @@ const MergeLogs: React.FC<PageProps> = ({ setModal }) => {
                             <SortableHeader column="fileName" label="File Name" />
                             <SortableHeader column="user" label="User" />
                             <SortableHeader column="type" label="Type" />
+                            <SortableHeader column="operation" label="Operation" />
                             <SortableHeader column="status" label="Status" />
                             <SortableHeader column="timestamp" label="Timestamp" />
                             <th className="py-3 px-4 font-semibold text-right">Actions</th>
@@ -220,9 +237,9 @@ const MergeLogs: React.FC<PageProps> = ({ setModal }) => {
                     </thead>
                     <tbody className="text-sm">
                          {loading ? (
-                             <tr><td colSpan={7} className="text-center py-8"><div className="spinner mx-auto"></div></td></tr>
+                             <tr><td colSpan={8} className="text-center py-8"><div className="spinner mx-auto"></div></td></tr>
                         ) : processedLogs.length === 0 ? (
-                            <tr><td colSpan={7} className="text-center py-8 text-gray-500">No merge logs found.</td></tr>
+                            <tr><td colSpan={8} className="text-center py-8 text-gray-500">No merge logs found.</td></tr>
                         ) : (
                             processedLogs.map(log => (
                                 <tr key={log.sn} className="border-b border-inherit last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-800">
@@ -230,6 +247,7 @@ const MergeLogs: React.FC<PageProps> = ({ setModal }) => {
                                     <td className="py-4 px-4 font-medium">{log.fileName}</td>
                                     <td className="py-4 px-4 text-gray-500 dark:text-gray-400">{log.user || '-'}</td>
                                     <td className="py-4 px-4 text-gray-500 dark:text-gray-400">{log.type}</td>
+                                    <td className="py-4 px-4 text-gray-500 dark:text-gray-400">{log.operation || '-'}</td>
                                     <td className="py-4 px-4">
                                         <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${log.status === 'Success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>{log.status}</span>
                                     </td>
