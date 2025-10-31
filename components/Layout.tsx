@@ -51,11 +51,12 @@ export const generalMenu: NavSection = {
         { id: 'marge-it', label: 'Marge It', icon: 'link', color: 'text-cyan-500 dark:text-cyan-400' },
         { id: 'templates', label: 'Templates', icon: 'description', color: 'text-indigo-500 dark:text-indigo-400' },
         { id: 'merge-logs', label: 'Merge Logs', icon: 'history_toggle_off', color: 'text-orange-500 dark:text-orange-400' },
+        { id: 'todo', label: 'Notepad', icon: 'checklist', color: 'text-lime-500 dark:text-lime-400' },
         { id: 'notifications', label: 'Notifications', icon: 'notifications', color: 'text-red-500 dark:text-red-400' },
         { id: 'billing', label: 'Billing', icon: 'credit_card', color: 'text-pink-500 dark:text-pink-400' },
         { id: 'settings', label: 'Settings', icon: 'settings', color: 'text-gray-500 dark:text-gray-400' },
         { id: 'help', label: 'Help', icon: 'help', color: 'text-teal-500 dark:text-teal-400' },
-        { id: 'todo', label: 'To-Do List', icon: 'checklist', color: 'text-lime-500 dark:text-lime-400' },
+ 
     ]
 };
 

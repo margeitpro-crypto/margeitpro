@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Notification, PageProps } from '../types';
+import { MOCK_NOTIFICATIONS, Notification, PageProps } from '../types';
 import { getNotificationsData } from '../services/gasClient';
 
 const ToggleSwitch: React.FC<{ label: string, description: string, defaultChecked?: boolean }> = ({ label, description, defaultChecked=false }) => {

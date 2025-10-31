@@ -125,11 +125,14 @@ export interface BillingPlan {
     currency?: string; // Currency for the plan (USD, NPR, INR)
 }
 
-export interface Todo {
+export interface Note {
     id: number;
-    text: string;
-    completed: boolean;
-    priority: 'High' | 'Medium' | 'Low';
+    title: string;
+    content: string;
+    fontSize: number;
+    fontFamily: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 // --- UI-related types ---

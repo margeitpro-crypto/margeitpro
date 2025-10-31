@@ -22,7 +22,7 @@ import Notifications from './pages/Notifications';
 import Billing from './pages/Billing';
 import Settings from './pages/Settings';
 
-import TodoPage from './pages/Todo';
+import NotepadPage from './pages/Notepad';
 import FormManagement from './pages/FormManagement';
 import SystemAnalytics from './pages/SystemAnalytics';
 
@@ -181,7 +181,7 @@ const AppContent: React.FC = () => {
             case 'notifications': return <Notifications {...pageProps} />;
             case 'billing': return <Billing {...pageProps} />;
             case 'settings': return <Settings {...pageProps} />;
-            case 'todo': return <TodoPage {...pageProps} />;
+            case 'todo': return <NotepadPage {...pageProps} />;
             case 'help': return <Help {...pageProps} />;
             default:
                 const defaultPage = accessiblePages.includes('admin-control-center') ? 'admin-control-center' : 'user-dashboard';
