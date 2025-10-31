@@ -26,6 +26,8 @@ export interface MergeLog {
   sheet?: string;
   timestamp?: string;
   fileUrl?: string;
+  operation?: 'Custom' | 'All In One'; // Type of merge operation performed
+  templateId?: string; // ID of the template used for the merge
 }
 
 export interface AuditLog {

@@ -376,7 +376,7 @@ export default function MargeItPage({ setModal, user }: PageProps) {
                                                 <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${log.status === 'Success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>{log.status}</span>
                                             </td>
                                             <td className="py-4 px-4 text-gray-500 dark:text-gray-400">{log.timestamp}</td>
-                                            <td className="py-4 px-4 text-right">
+                                          <td className="py-4 px-4 text-right">
                                                 <div className="inline-block text-left">
                                                     {log.status === 'Success' ? (
                                                         <button onClick={(e) => handleDropdownToggle(e, log.sn)} className="material-icons-outlined text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full p-1">more_vert</button>

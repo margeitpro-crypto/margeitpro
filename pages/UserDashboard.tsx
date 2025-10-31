@@ -50,12 +50,12 @@ const UserDashboard: React.FC<PageProps> = ({ theme, user }) => {
         return {
             type: 'bar',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                datasets: [{ label: 'Merges', data: [120, 80, 190, 50, 150, 180], backgroundColor: '#4F46E5', borderWidth: 0, borderRadius: 4, barPercentage: 0.6 }]
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{ label: 'Merges', data: dashboardData?.mergeActivityLast7Days || [0, 0, 0, 0, 0, 0, 0], backgroundColor: '#4F46E5', borderWidth: 0, borderRadius: 4, barPercentage: 0.6 }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: tickColor } } } }
         };
-    }, [theme]);
+    }, [theme, dashboardData]);
     
     return (
         <div className="max-w-7xl mx-auto">
@@ -70,7 +70,7 @@ const UserDashboard: React.FC<PageProps> = ({ theme, user }) => {
                 <StatCard title="Your Total Merges" value={dashboardData?.totalUserMerges.toLocaleString() ?? '...'} change="+120 this week" icon="analytics" iconColor="text-blue-500" />
                 <StatCard title="Docs Generated" value={dashboardData?.docsGenerated.toLocaleString() ?? '...'} change="+15.2% from last week" icon="article" iconColor="text-green-500" />
                 <StatCard title="Slides Generated" value={dashboardData?.slidesGenerated.toLocaleString() ?? '...'} change="+12.1% from last week" icon="slideshow" iconColor="text-yellow-500" />
-                <StatCard title="Templates & Success" value="42 Used / 98.5%" change="+5 new, +1.2% up" icon="category" iconColor="text-purple-500" />
+                <StatCard title="Templates & Success" value={`${dashboardData?.templatesUsed ?? '...'} Used / ${dashboardData?.successRate ?? '...'}%`} change="+5 new, +1.2% up" icon="category" iconColor="text-purple-500" />
             </div>
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 card p-6">
