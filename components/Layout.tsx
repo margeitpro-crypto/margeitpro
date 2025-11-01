@@ -51,7 +51,6 @@ export const generalMenu: NavSection = {
         { id: 'marge-it', label: 'Marge It', icon: 'link', color: 'text-cyan-500 dark:text-cyan-400' },
         { id: 'templates', label: 'Templates', icon: 'description', color: 'text-indigo-500 dark:text-indigo-400' },
         { id: 'merge-logs', label: 'Merge Logs', icon: 'history_toggle_off', color: 'text-orange-500 dark:text-orange-400' },
-        { id: 'todo', label: 'Notepad', icon: 'checklist', color: 'text-lime-500 dark:text-lime-400' },
         { id: 'notifications', label: 'Notifications', icon: 'notifications', color: 'text-red-500 dark:text-red-400' },
         { id: 'billing', label: 'Billing', icon: 'credit_card', color: 'text-pink-500 dark:text-pink-400' },
         { id: 'settings', label: 'Settings', icon: 'settings', color: 'text-gray-500 dark:text-gray-400' },
@@ -99,7 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activePage, navigateTo }
     return (
         <aside className="sidebar flex flex-col h-screen w-64 flex-shrink-0">
             <div className="px-6 h-16 text-xl font-bold flex items-center gap-2.5 border-b border-inherit flex-shrink-0">
-                <span className="material-icons-outlined text-3xl text-blue-600 dark:text-blue-500">apps</span>
+                <span className="material-icons-outlined text-3xl text-primary">apps</span>
                 <span className="tracking-tight">MargeitPro</span>
             </div>
             <div className="flex-1 overflow-y-auto">
@@ -162,10 +161,10 @@ export const Header: React.FC<HeaderProps> = ({ setSidebarOpen, toggleTheme, the
     }, []);
 
     return (
-        <header className="h-16 px-6 flex justify-between items-center flex-shrink-0">
+        <header className="h-16 px-6 flex justify-between items-center flex-shrink-0 bg-surface border-b border-fb">
             <div className="flex items-center gap-3">
                 <span onClick={() => setSidebarOpen(prev => !prev)} className="material-icons-outlined cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full lg:hidden">menu</span>
-                <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">{currentPageLabel}</h1>
+                <h1 className="text-xl font-bold" style={{ color: 'var(--fb-text-primary)' }}>{currentPageLabel}</h1>
             </div>
 
             <div className="flex items-center gap-2">

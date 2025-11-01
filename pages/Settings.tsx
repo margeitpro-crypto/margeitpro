@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { PageProps, User } from '../types';
 import { uploadFile, updateUserByUser } from '../services/gasClient';
 import { adminMenu, generalMenu } from '../components/Layout';
+import ThemeSettings from '../components/ThemeSettings';
 
 const allPagesMap = new Map([...adminMenu.items, ...generalMenu.items].map(item => [item.id, item.label]));
 
@@ -158,6 +159,11 @@ const Settings: React.FC<PageProps> = ({ setModal, user }) => {
                         <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                             Manage Google Account <span className="material-icons-outlined text-base">open_in_new</span>
                         </a>
+                    </div>
+
+                    <div className="card p-6">
+                        <h2 className="text-xl font-bold border-b border-inherit pb-4 mb-4">Theme Settings</h2>
+                        <ThemeSettings />
                     </div>
 
                     <div className="card p-6">

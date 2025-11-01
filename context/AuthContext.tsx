@@ -63,8 +63,8 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
             status: 'Active',
             joinDate: new Date().toISOString().split('T')[0],
             accessPage: currentUser.email === "margeitpro@gmail.com"
-                ? 'admin-control-center,system-analytics,form-management,user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,todo,documentation,help'
-                : 'user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,todo,documentation,help',
+                ? 'admin-control-center,system-analytics,form-management,user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,help'
+                : 'user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,help',
             plan: currentUser.email === "margeitpro@gmail.com" ? 'Enterprise' : 'Free',
             hasProAccess: currentUser.email === "margeitpro@gmail.com",
             profilePictureUrl: currentUser.photoURL,

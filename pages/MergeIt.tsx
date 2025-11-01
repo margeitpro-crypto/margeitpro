@@ -350,10 +350,10 @@ export default function MargeItPage({ setModal, user }: PageProps) {
             <div><Label htmlFor={`${currentMode}-outputFileName`}>Output File Name (Optional)</Label>{renderInput('drive_file_rename_outline', 'text-gray-400', `${currentMode}-outputFileName`, "outputFileName", "e.g., Monthly_Report", formData.outputFileName, handleChange)}</div>
         </div>
         <div className="flex flex-wrap gap-3 mt-8">
-          <button onClick={() => handlePreview(currentMode)} disabled={isProcessing} className="btn btn-info bg-blue-500 hover:bg-blue-600 text-white hover:scale-105 transition-all duration-200"><span className="material-icons-outlined text-lg">visibility</span>Preview</button>
-          <button onClick={() => handleRunMerge('custom', currentMode)} disabled={isProcessing} className="btn btn-warning bg-yellow-500 hover:bg-yellow-600 text-white hover:scale-105 transition-all duration-200">Custom (One file per row)</button>
-          <button onClick={() => handleRunMerge('allinone', currentMode)} disabled={isProcessing} className="btn btn-primary hover:scale-105 transition-all duration-200 glow-effect"><span className="material-icons-outlined text-lg text-yellow-300">auto_awesome</span>All In One (One file for all)</button>
-          <button onClick={() => handleReset(currentMode)} className="btn btn-danger hover:scale-105 transition-all duration-200" disabled={isProcessing}>Clear</button>
+          <button onClick={() => handlePreview(currentMode)} disabled={isProcessing} className="btn btn-secondary"><span className="material-icons-outlined text-lg">visibility</span>Preview</button>
+          <button onClick={() => handleRunMerge('custom', currentMode)} disabled={isProcessing} className="btn btn-secondary">Custom (One file per row)</button>
+          <button onClick={() => handleRunMerge('allinone', currentMode)} disabled={isProcessing} className="btn btn-primary"><span className="material-icons-outlined text-lg">auto_awesome</span>All In One (One file for all)</button>
+          <button onClick={() => handleReset(currentMode)} className="btn btn-danger" disabled={isProcessing}>Clear</button>
         </div>
       </div>
     );
@@ -382,9 +382,9 @@ export default function MargeItPage({ setModal, user }: PageProps) {
             </div>
         </div>
         <div className="p-6 pt-0">
-            <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-lg flex">
-                <button onClick={() => setMode('slides')} className={`flex-1 px-4 py-2 font-semibold text-sm rounded-md focus:outline-none transition-colors ${mode === 'slides' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>Sheet to Slides</button>
-                <button onClick={() => setMode('docs')} className={`flex-1 px-4 py-2 font-semibold text-sm rounded-md focus:outline-none transition-colors ${mode === 'docs' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>Sheet to Docs</button>
+            <div className="p-1 rounded-lg flex" style={{ backgroundColor: 'var(--fb-border)' }}>
+                <button onClick={() => setMode('slides')} className={`flex-1 px-4 py-2 font-semibold text-sm rounded-md focus:outline-none transition-colors ${mode === 'slides' ? 'shadow-sm' : ''}`} style={{ backgroundColor: mode === 'slides' ? 'var(--fb-surface)' : 'transparent', color: mode === 'slides' ? 'var(--fb-text-primary)' : 'var(--fb-text-secondary)' }}>Sheet to Slides</button>
+                <button onClick={() => setMode('docs')} className={`flex-1 px-4 py-2 font-semibold text-sm rounded-md focus:outline-none transition-colors ${mode === 'docs' ? 'shadow-sm' : ''}`} style={{ backgroundColor: mode === 'docs' ? 'var(--fb-surface)' : 'transparent', color: mode === 'docs' ? 'var(--fb-text-primary)' : 'var(--fb-text-secondary)' }}>Sheet to Docs</button>
             </div>
             
             {mode === 'slides' ? renderForm('slides') : renderForm('docs')}
@@ -408,20 +408,20 @@ export default function MargeItPage({ setModal, user }: PageProps) {
                                 </thead>
                                 <tbody className="text-sm">
                                     {sortedResults.map(log => (
-                                        <tr key={log.sn} className="border-b border-inherit last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors duration-200">
-                                            <td className="py-4 px-4 text-gray-500 dark:text-gray-400">{log.sn}</td>
-                                            <td className="py-4 px-4 font-medium">{log.fileName}</td>
-                                            <td className="py-4 px-4 text-gray-500 dark:text-gray-400">{log.type}</td>
+                                        <tr key={log.sn} className="border-b last:border-b-0 transition-colors duration-200" style={{ borderColor: 'var(--fb-border)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                            <td className="py-4 px-4" style={{ color: 'var(--fb-text-secondary)' }}>{log.sn}</td>
+                                            <td className="py-4 px-4 font-medium" style={{ color: 'var(--fb-text-primary)' }}>{log.fileName}</td>
+                                            <td className="py-4 px-4" style={{ color: 'var(--fb-text-secondary)' }}>{log.type}</td>
                                             <td className="py-4 px-4">
                                                 <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full transition-all duration-300 ${log.status === 'Success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 success-animation' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 error-shake'}`}>{log.status}</span>
                                             </td>
-                                            <td className="py-4 px-4 text-gray-500 dark:text-gray-400">{log.timestamp}</td>
+                                            <td className="py-4 px-4" style={{ color: 'var(--fb-text-secondary)' }}>{log.timestamp}</td>
                                           <td className="py-4 px-4 text-right">
                                                 <div className="inline-block text-left">
                                                     {log.status === 'Success' ? (
-                                                        <button onClick={(e) => handleDropdownToggle(e, log.sn)} className="material-icons-outlined text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full p-1">more_vert</button>
+                                                        <button onClick={(e) => handleDropdownToggle(e, log.sn)} className="material-icons-outlined rounded-full p-1 transition-colors" style={{ color: 'var(--fb-text-secondary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>more_vert</button>
                                                     ) : (
-                                                        <button onClick={() => handleRemoveResult(log.sn)} className="material-icons-outlined text-gray-500 dark:text-gray-400 hover:text-red-500 p-1">delete</button>
+                                                        <button onClick={() => handleRemoveResult(log.sn)} className="material-icons-outlined p-1 transition-colors" style={{ color: 'var(--fb-text-secondary)' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--fb-error)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--fb-text-secondary)'}>delete</button>
                                                     )}
                                                 </div>
                                             </td>
@@ -445,15 +445,15 @@ export default function MargeItPage({ setModal, user }: PageProps) {
                   style={{ top: `${dropdownPosition.top}px`, left: `${dropdownPosition.left}px` }}
               >
                   <ul>
-                      <li><a href={log.fileUrl} target="_blank" rel="noopener noreferrer" onClick={closeDropdown} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md"><span className="material-icons-outlined text-base text-blue-500">open_in_new</span>Open</a></li>
-                      <li><button onClick={() => handleCopyLink(log.fileUrl!)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md"><span className="material-icons-outlined text-base text-green-500">content_copy</span>Copy Link</button></li>
+                      <li><a href={log.fileUrl} target="_blank" rel="noopener noreferrer" onClick={closeDropdown} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-blue-500">open_in_new</span>Open</a></li>
+                      <li><button onClick={() => handleCopyLink(log.fileUrl!)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-green-500">content_copy</span>Copy Link</button></li>
                       <li className="my-1 border-t border-inherit"></li>
                       <li className="px-3 pt-2 pb-1 text-xs text-gray-400">Download As</li>
                       {(log.type === 'Sheet to Slides' ? downloadFormats.slides : downloadFormats.docs).map(df => (
-                          <li key={df.format}><button onClick={() => handleDownload(log.fileUrl!, df.format)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md"><span className="material-icons-outlined text-base text-gray-500">download</span>{df.label}</button></li>
+                          <li key={df.format}><button onClick={() => handleDownload(log.fileUrl!, df.format)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-gray-500">download</span>{df.label}</button></li>
                       ))}
                       <li className="my-1 border-t border-inherit"></li>
-                      <li><button onClick={() => handleRemoveResult(log.sn)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"><span className="material-icons-outlined text-base">delete</span>Remove from list</button></li>
+                      <li><button onClick={() => handleRemoveResult(log.sn)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-error)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(228, 30, 63, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base">delete</span>Remove from list</button></li>
                   </ul>
               </div>
           );

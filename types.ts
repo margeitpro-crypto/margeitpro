@@ -125,15 +125,7 @@ export interface BillingPlan {
     currency?: string; // Currency for the plan (USD, NPR, INR)
 }
 
-export interface Note {
-    id: number;
-    title: string;
-    content: string;
-    fontSize: number;
-    fontFamily: string;
-    createdAt: string;
-    updatedAt: string;
-}
+
 
 // --- UI-related types ---
 
@@ -154,9 +146,9 @@ export interface PageProps {
 
 export const MOCK_USERS: Omit<User, 'id'>[] = [
     
-    { name: 'Marge It Pro', email: 'margeitpro@gmail.com', role: 'Admin', status: 'Active', joinDate: '2025-01-15', accessPage: 'admin-dashboard,audit-logs,form-management,system-analytics,user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,todo,documentation', plan: 'Enterprise', hasProAccess: true, profilePictureId: '1FmzVvmkGyYKP0eK1lD1NrURtfmd6aWLl' },
-    { name: 'John Doe', email: 'john.doe@example.com', role: 'User', status: 'Active', joinDate: '2023-05-20', accessPage: 'user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,todo,documentation', plan: 'Pro', hasProAccess: true, profilePictureId: '1DRoR6plGY-Kj5d2yV_d2A_nUu5eY7k-B' },
-    { name: 'Jane Smith', email: 'jane.smith@example.com', role: 'User', status: 'Active', joinDate: '2023-08-10', accessPage: 'user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,todo,documentation', plan: 'Free' },
+    { name: 'Marge It Pro', email: 'margeitpro@gmail.com', role: 'Admin', status: 'Active', joinDate: '2025-01-15', accessPage: 'admin-control-center,system-analytics,form-management,user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,help', plan: 'Enterprise', hasProAccess: true, profilePictureId: '1FmzVvmkGyYKP0eK1lD1NrURtfmd6aWLl' },
+    { name: 'John Doe', email: 'john.doe@example.com', role: 'User', status: 'Active', joinDate: '2023-05-20', accessPage: 'user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,help', plan: 'Pro', hasProAccess: true, profilePictureId: '1DRoR6plGY-Kj5d2yV_d2A_nUu5eY7k-B' },
+    { name: 'Jane Smith', email: 'jane.smith@example.com', role: 'User', status: 'Active', joinDate: '2023-08-10', accessPage: 'user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,help', plan: 'Free' },
     { name: 'Inactive User', email: 'inactive.user@example.com', role: 'User', status: 'Inactive', joinDate: '2023-03-01', inactiveDate: '2024-01-01', accessPage: 'user-dashboard,marge-it,templates,merge-logs', plan: 'Free' },
 ];
 
