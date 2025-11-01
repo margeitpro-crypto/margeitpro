@@ -33,7 +33,7 @@ const Label: React.FC<{ htmlFor: string; children: React.ReactNode }> = ({ htmlF
 );
 
 const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-  <input {...props} className={`w-full p-2 ${props.className || ''}`} />
+  <input {...props} className={props.className || ''} />
 );
 
 export default function MargeItPage({ setModal, user }: PageProps) {
@@ -326,9 +326,9 @@ export default function MargeItPage({ setModal, user }: PageProps) {
   }, [results, sort]);
 
   const renderInput = ( iconName: string, iconColor: string, id: string, name: keyof FormData, placeholder: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, type: string = 'text', required: boolean = false ) => (
-    <div className="relative">
-        <span className={`material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none ${iconColor}`}>{iconName}</span>
-        <Input id={id} type={type} name={name} placeholder={placeholder} value={value} onChange={onChange} className="pl-10" disabled={isProcessing} required={required} />
+    <div className="input-with-icon">
+        <span className={`material-icons-outlined input-icon ${iconColor}`}>{iconName}</span>
+        <Input id={id} type={type} name={name} placeholder={placeholder} value={value} onChange={onChange} disabled={isProcessing} required={required} />
     </div>
   );
 

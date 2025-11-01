@@ -7,16 +7,22 @@
   /* Facebook Light Theme */
   --fb-primary: #1877F2;
   --fb-primary-hover: #166FE5;
+  --fb-blue-dark: #4267B2;
   --fb-primary-light: #E7F3FF;
   --fb-background: #F0F2F5;
   --fb-surface: #FFFFFF;
-  --fb-border: #E4E6EA;
+  --fb-border: #ccd0d5;
+  --fb-text: #050505;
   --fb-text-primary: #050505;
-  --fb-text-secondary: #65676B;
+  --fb-text-secondary: #606770;
   --fb-text-tertiary: #8A8D91;
-  --fb-success: #42B883;
+  --fb-success: #36a420;
   --fb-error: #E41E3F;
   --fb-warning: #F7B801;
+  --fb-dark-bg: #18191a;
+  --fb-dark-surface: #242526;
+  --fb-text-dark: #e4e6eb;
+  --fb-secondary-dark: #b0b3b8;
   
   /* Font Sizes */
   --text-xs: 0.75rem;
@@ -48,6 +54,12 @@
   --fb-text-primary: #E4E6EA;
   --fb-text-secondary: #B0B3B8;
   --fb-text-tertiary: #8A8D91;
+  --fb-text: #e4e6eb;
+  --fb-text-dark: #e4e6eb;
+  --fb-secondary-dark: #b0b3b8;
+  --fb-border-dark: #3e4042;
+  --fb-dark-surface: #242526;
+  --fb-dark-bg: #18191a;
 }
 
 /* Facebook Color Variants */
@@ -278,7 +290,7 @@
 }
 
 /* Facebook Input Styles */
-input, select, textarea {
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
   background-color: var(--fb-surface);
   border: 1px solid var(--fb-border);
   color: var(--fb-text-primary);
@@ -288,7 +300,7 @@ input, select, textarea {
   transition: border-color 0.2s ease;
 }
 
-input:focus, select:focus, textarea:focus {
+input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--fb-primary);
   box-shadow: 0 0 0 2px var(--fb-primary-light);
@@ -338,9 +350,10 @@ input:focus, select:focus, textarea:focus {
 body {
   background-color: var(--fb-background);
   color: var(--fb-text-primary);
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 1.34;
+  transition: background-color 0.3s;
 }
 
 * {
@@ -494,3 +507,332 @@ h6 { font-size: var(--text-sm); }
 .rounded-theme { border-radius: var(--radius-md); }
 .rounded-theme-lg { border-radius: var(--radius-lg); }
 .rounded-theme-xl { border-radius: var(--radius-xl); }
+
+/* Facebook Pricing Card Styles */
+.card-shadow-hover {
+  transition: all 0.3s ease;
+}
+
+.card-shadow-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(24, 119, 242, 0.2), 0 4px 6px -2px rgba(24, 119, 242, 0.05);
+}
+
+.dark .card-shadow-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -2px rgba(255, 255, 255, 0.05);
+}
+
+/* Facebook Theme Color Classes */
+.text-fb-text {
+  color: #050505;
+}
+
+.dark .text-fb-text-dark {
+  color: #e4e6eb;
+}
+
+.text-fb-secondary {
+  color: #606770;
+}
+
+.dark .text-fb-secondary-dark {
+  color: #b0b3b8;
+}
+
+.border-fb-border {
+  border-color: #ccd0d5;
+}
+
+.dark .border-fb-border-dark {
+  border-color: #3e4042;
+}
+
+.bg-fb-surface {
+  background-color: #ffffff;
+}
+
+.dark .bg-fb-dark-surface {
+  background-color: #242526;
+}
+
+.bg-fb-primary {
+  background-color: #1877F2;
+}
+
+.text-fb-primary {
+  color: #1877F2;
+}
+
+.bg-fb-light {
+  background-color: #F0F2F5;
+}
+
+.dark .bg-fb-dark {
+  background-color: #18191a;
+}
+
+.hover\:bg-fb-light:hover {
+  background-color: #F0F2F5;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: #f3f4f6;
+}
+
+.hover\:scale-\[1\.02\]:hover {
+  transform: scale(1.02);
+}
+
+.hover\:scale-\[1\.03\]:hover {
+  transform: scale(1.03);
+}
+
+.hover\:scale-\[1\.07\]:hover {
+  transform: scale(1.07);
+}
+
+.scale-105 {
+  transform: scale(1.05);
+}
+
+/* Facebook Success Color */
+.text-green-500 {
+  color: #10b981;
+}
+
+.bg-green-500 {
+  background-color: #10b981;
+}
+
+/* Material Icons Styling */
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Pricing Card Animation */
+@keyframes cardHover {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-4px) scale(1.02); }
+}
+
+.pricing-card:hover {
+  animation: cardHover 0.3s ease forwards;
+}
+
+/* Facebook Button Hover Effects */
+.btn-primary:hover {
+  background-color: #4267B2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+}
+
+/* Dark Mode Adjustments */
+.dark .text-fb-text {
+  color: #e4e6eb;
+}
+
+.dark .text-fb-secondary {
+  color: #b0b3b8;
+}
+
+.dark .border-fb-border {
+  border-color: #3e4042;
+}
+
+.dark .bg-fb-surface {
+  background-color: #242526;
+}
+
+.dark .bg-fb-light {
+  background-color: #18191a;
+}
+
+/* Input Field with Icon Styles */
+.input-with-icon {
+  position: relative;
+  display: block;
+}
+
+.input-with-icon .input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 10;
+  font-size: 20px;
+}
+
+.input-with-icon input {
+  padding-left: 44px !important;
+  width: 100%;
+  padding-right: 16px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border: 1px solid var(--fb-border);
+  border-radius: 8px;
+  background-color: white;
+  color: var(--fb-text);
+  transition: all 0.2s ease;
+}
+
+.dark .input-with-icon input {
+  border-color: var(--fb-border-dark);
+  background-color: var(--fb-dark-surface);
+  color: var(--fb-text-dark);
+}
+
+.input-with-icon input:focus {
+  outline: none;
+  border-color: var(--fb-primary);
+  box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+}
+
+/* Colorful Checkbox Styles */
+input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #1877F2;
+  border-color: #1877F2;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e");
+  background-size: 14px 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+input[type="checkbox"]:hover {
+  border-color: #1877F2;
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
+}
+
+input[type="checkbox"]:focus {
+  outline: none;
+  border-color: #1877F2;
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.2);
+}
+
+/* Dark mode checkbox */
+.dark input[type="checkbox"] {
+  background-color: #374151;
+  border-color: #6b7280;
+}
+
+.dark input[type="checkbox"]:checked {
+  background-color: #1877F2;
+  border-color: #1877F2;
+}
+
+.dark input[type="checkbox"]:hover {
+  border-color: #1877F2;
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.15);
+}
+
+/* Animated checkbox variants */
+input[type="checkbox"].checkbox-green:checked {
+  background-color: #10b981;
+  border-color: #10b981;
+}
+
+input[type="checkbox"].checkbox-red:checked {
+  background-color: #ef4444;
+  border-color: #ef4444;
+}
+
+input[type="checkbox"].checkbox-purple:checked {
+  background-color: #8b5cf6;
+  border-color: #8b5cf6;
+}
+
+input[type="checkbox"].checkbox-orange:checked {
+  background-color: #f59e0b;
+  border-color: #f59e0b;
+}
+
+input[type="checkbox"].checkbox-pink:checked {
+  background-color: #ec4899;
+  border-color: #ec4899;
+}
+
+/* Checkbox animation */
+input[type="checkbox"]:checked {
+  animation: checkboxPop 0.2s ease-in-out;
+}
+
+@keyframes checkboxPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Radio button styles */
+input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 50%;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+input[type="radio"]:checked {
+  border-color: #1877F2;
+  background-color: white;
+}
+
+input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #1877F2;
+  animation: radioPop 0.2s ease-in-out;
+}
+
+@keyframes radioPop {
+  0% { transform: translate(-50%, -50%) scale(0); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+input[type="radio"]:hover {
+  border-color: #1877F2;
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
+}
+
+.dark input[type="radio"] {
+  background-color: #374151;
+  border-color: #6b7280;
+}
+
+.dark input[type="radio"]:checked {
+  border-color: #1877F2;
+  background-color: #374151;
+}

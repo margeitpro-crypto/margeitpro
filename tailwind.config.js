@@ -3,11 +3,35 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      },
       colors: {
+        // Facebook-inspired color scheme
+        'fb-primary': '#1877F2',
+        'fb-blue-dark': '#4267B2',
+        // Light Mode UI Colors (Facebook-style)
+        'fb-text': '#050505',
+        'fb-secondary': '#606770',
+        'fb-border': '#ccd0d5',
+        'fb-surface': '#F0F2F5',
+        'fb-light': '#F0F2F5',
+        'fb-hover': '#f7f8fa',
+        // Dark Mode UI Colors (Facebook-style)
+        'fb-dark-bg': '#18191a',
+        'fb-dark-surface': '#242526',
+        'fb-text-dark': '#e4e6eb',
+        'fb-secondary-dark': '#b0b3b8',
+        'fb-border-dark': '#3e4042',
+        'fb-hover-dark': '#3a3b3c',
+        // Standard Success Color
+        'fb-success': '#36a420',
         // Light Mode Colors
         light: {
           background: '#f8fafc',

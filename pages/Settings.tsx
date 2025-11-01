@@ -6,8 +6,26 @@ import ThemeSettings from '../components/ThemeSettings';
 
 const allPagesMap = new Map([...adminMenu.items, ...generalMenu.items].map(item => [item.id, item.label]));
 
+type SettingsTab = 'profile' | 'security' | 'notifications' | 'preferences' | 'billing' | 'data';
+
 const Settings: React.FC<PageProps> = ({ setModal, user }) => {
+    const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
     const [isUploading, setIsUploading] = useState(false);
+    const [notificationSettings, setNotificationSettings] = useState({
+        mergeCompletion: true,
+        systemUpdates: true,
+        marketingEmails: false,
+        errorAlerts: true,
+        weeklyDigest: true,
+        billingAlerts: true
+    });
+    const [preferences, setPreferences] = useState({
+        language: 'en',
+        timezone: 'UTC',
+        dateFormat: 'MM/DD/YYYY',
+        autoSave: true,
+        compactMode: false
+    });
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // The user object is now passed directly via props.
@@ -75,180 +93,376 @@ const Settings: React.FC<PageProps> = ({ setModal, user }) => {
         ? currentUser.accessPage
         : (currentUser.accessPage || '').split(',').map(p => p.trim()).filter(Boolean);
 
+    const tabs: { id: SettingsTab; label: string; icon: string }[] = [
+        { id: 'profile', label: 'Profile', icon: 'person' },
+        { id: 'security', label: 'Security', icon: 'security' },
+        { id: 'notifications', label: 'Notifications', icon: 'notifications' },
+        { id: 'preferences', label: 'Preferences', icon: 'tune' },
+        { id: 'billing', label: 'Billing', icon: 'credit_card' },
+        { id: 'data', label: 'Data & Privacy', icon: 'privacy_tip' }
+    ];
+
+    const renderTabContent = () => {
+        switch (activeTab) {
+            case 'profile':
+                return renderProfileTab();
+            case 'security':
+                return renderSecurityTab();
+            case 'notifications':
+                return renderNotificationsTab();
+            case 'preferences':
+                return renderPreferencesTab();
+            case 'billing':
+                return renderBillingTab();
+            case 'data':
+                return renderDataTab();
+
+            default:
+                return renderProfileTab();
+        }
+    };
+
+    const renderProfileTab = () => (
+        <div className="space-y-6">
+            <div className="card p-6">
+                <h3 className="text-lg font-semibold mb-4 text-fb-text dark:text-fb-text-dark">Profile Information</h3>
+                <div className="flex items-center gap-6 mb-6">
+                    <div className="relative group">
+                        <img 
+                            src={getUserAvatar(currentUser)} 
+                            className="w-20 h-20 rounded-full object-cover" 
+                            alt={currentUser.name}
+                        />
+                        <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-center justify-center rounded-full transition-opacity duration-300"
+                            disabled={isUploading}
+                        >
+                            {isUploading 
+                                ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div> 
+                                : <span className="material-icons-outlined text-white opacity-0 group-hover:opacity-100 transition-opacity">photo_camera</span>
+                            }
+                        </button>
+                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                    </div>
+                    <div>
+                        <h4 className="text-xl font-bold text-fb-text dark:text-fb-text-dark">{currentUser.name}</h4>
+                        <p className="text-fb-secondary dark:text-fb-secondary-dark">{currentUser.email}</p>
+                        <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full mt-2 ${currentUser.role === 'Admin' ? 'bg-fb-primary/10 text-fb-primary' : 'bg-fb-secondary/10 text-fb-secondary dark:text-fb-secondary-dark'}`}>
+                            {currentUser.role}
+                        </span>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-fb-text dark:text-fb-text-dark mb-2">Full Name</label>
+                        <input type="text" defaultValue={currentUser.name} className="w-full p-3 border border-fb-border dark:border-fb-border-dark rounded-lg bg-white dark:bg-fb-surface text-fb-text dark:text-fb-text-dark" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-fb-text dark:text-fb-text-dark mb-2">Email</label>
+                        <input type="email" defaultValue={currentUser.email} disabled className="w-full p-3 border border-fb-border dark:border-fb-border-dark rounded-lg bg-fb-light dark:bg-fb-dark text-fb-secondary dark:text-fb-secondary-dark" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-fb-text dark:text-fb-text-dark mb-2">Phone Number</label>
+                        <input type="tel" placeholder="+1 (555) 123-4567" className="w-full p-3 border border-fb-border dark:border-fb-border-dark rounded-lg bg-white dark:bg-fb-surface text-fb-text dark:text-fb-text-dark" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-fb-text dark:text-fb-text-dark mb-2">Job Title</label>
+                        <input type="text" placeholder="Software Engineer" className="w-full p-3 border border-fb-border dark:border-fb-border-dark rounded-lg bg-white dark:bg-fb-surface text-fb-text dark:text-fb-text-dark" />
+                    </div>
+                </div>
+                <div className="mt-6">
+                    <label className="block text-sm font-medium text-fb-text dark:text-fb-text-dark mb-2">Bio</label>
+                    <textarea rows={3} placeholder="Tell us about yourself..." className="w-full p-3 border border-fb-border dark:border-fb-border-dark rounded-lg bg-white dark:bg-fb-surface text-fb-text dark:text-fb-text-dark"></textarea>
+                </div>
+                <div className="flex justify-end mt-6">
+                    <button className="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+            
+            <div className="card p-6">
+                <h3 className="text-lg font-semibold mb-4 text-fb-text dark:text-fb-text-dark">Account Status</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                        <div className="text-2xl font-bold text-fb-primary">{currentUser.plan}</div>
+                        <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Current Plan</div>
+                    </div>
+                    <div className="text-center p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                        <div className="text-2xl font-bold text-green-500">{currentUser.status}</div>
+                        <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Account Status</div>
+                    </div>
+                    <div className="text-center p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                        <div className="text-2xl font-bold text-fb-text dark:text-fb-text-dark">{currentUser.joinDate}</div>
+                        <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Member Since</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderSecurityTab = () => (
+        <div className="space-y-6">
+            <div className="card p-6">
+                <h3 className="text-lg font-semibold mb-4 text-fb-text dark:text-fb-text-dark">Account Security</h3>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                        <div className="flex items-center gap-3">
+                            <span className="material-icons-outlined text-green-500">verified_user</span>
+                            <div>
+                                <div className="font-medium text-fb-text dark:text-fb-text-dark">Google Authentication</div>
+                                <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Your account is secured by Google</div>
+                            </div>
+                        </div>
+                        <span className="text-green-500 text-sm font-medium">Active</span>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                        <div className="flex items-center gap-3">
+                            <span className="material-icons-outlined text-yellow-500">security</span>
+                            <div>
+                                <div className="font-medium text-fb-text dark:text-fb-text-dark">Two-Factor Authentication</div>
+                                <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Add an extra layer of security</div>
+                            </div>
+                        </div>
+                        <button className="btn btn-secondary btn-sm">Enable</button>
+                    </div>
+                </div>
+                <div className="mt-6">
+                    <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+                        Manage Google Security <span className="material-icons-outlined text-base ml-2">open_in_new</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div className="card p-6">
+                <h3 className="text-lg font-semibold mb-4 text-fb-text dark:text-fb-text-dark">Login Activity</h3>
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="border-b border-fb-border dark:border-fb-border-dark">
+                                <th className="text-left py-3 text-fb-text dark:text-fb-text-dark">Device</th>
+                                <th className="text-left py-3 text-fb-text dark:text-fb-text-dark">Location</th>
+                                <th className="text-left py-3 text-fb-text dark:text-fb-text-dark">Date</th>
+                                <th className="text-left py-3 text-fb-text dark:text-fb-text-dark">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr className="border-b border-fb-border dark:border-fb-border-dark">
+                                <td className="py-3 text-fb-text dark:text-fb-text-dark">Chrome on Windows</td>
+                                <td className="py-3 text-fb-secondary dark:text-fb-secondary-dark">New York, US</td>
+                                <td className="py-3 text-fb-secondary dark:text-fb-secondary-dark">Today, 2:30 PM</td>
+                                <td className="py-3"><span className="text-green-500 text-sm">Current</span></td>
+                            </tr>
+                            <tr className="border-b border-fb-border dark:border-fb-border-dark">
+                                <td className="py-3 text-fb-text dark:text-fb-text-dark">Safari on iPhone</td>
+                                <td className="py-3 text-fb-secondary dark:text-fb-secondary-dark">New York, US</td>
+                                <td className="py-3 text-fb-secondary dark:text-fb-secondary-dark">Yesterday, 8:15 AM</td>
+                                <td className="py-3"><span className="text-fb-secondary dark:text-fb-secondary-dark text-sm">Ended</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderNotificationsTab = () => (
+        <div className="space-y-6">
+            <div className="card p-6">
+                <h3 className="text-lg font-semibold mb-4 text-fb-text dark:text-fb-text-dark">Email Notifications</h3>
+                <p className="text-sm text-fb-secondary dark:text-fb-secondary-dark mb-6">Choose which notifications you'd like to receive. Each category has its own color for easy identification.</p>
+                <div className="space-y-2">
+                    {Object.entries({
+                        mergeCompletion: { label: 'Merge Completion', desc: 'Get notified when your merges complete', color: 'checkbox-green' },
+                        systemUpdates: { label: 'System Updates', desc: 'Receive notifications about system updates', color: '' },
+                        marketingEmails: { label: 'Marketing Emails', desc: 'Receive tips, tutorials, and product updates', color: 'checkbox-purple' },
+                        errorAlerts: { label: 'Error Alerts', desc: 'Get notified when operations fail', color: 'checkbox-red' },
+                        weeklyDigest: { label: 'Weekly Digest', desc: 'Weekly summary of your activity', color: 'checkbox-orange' },
+                        billingAlerts: { label: 'Billing Alerts', desc: 'Payment reminders and billing updates', color: 'checkbox-pink' }
+                    }).map(([key, { label, desc, color }]) => (
+                        <div key={key} className="flex items-center justify-between p-3 rounded-lg hover:bg-fb-light dark:hover:bg-fb-dark transition-colors">
+                            <div className="flex items-center gap-3">
+                                <input 
+                                    type="checkbox" 
+                                    checked={notificationSettings[key as keyof typeof notificationSettings]}
+                                    onChange={(e) => setNotificationSettings(prev => ({ ...prev, [key]: e.target.checked }))}
+                                    className={color}
+                                />
+                                <div>
+                                    <div className="font-medium text-fb-text dark:text-fb-text-dark">{label}</div>
+                                    <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">{desc}</div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderPreferencesTab = () => (
+        <div className="space-y-6">
+            <div className="card p-6">
+                <h3 className="text-lg font-semibold mb-4 text-fb-text dark:text-fb-text-dark">General Preferences</h3>
+                <p className="text-sm text-fb-secondary dark:text-fb-secondary-dark mb-6">Customize your experience with colorful checkboxes and personalized settings.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-fb-text dark:text-fb-text-dark mb-2">Language</label>
+                        <select value={preferences.language} onChange={(e) => setPreferences(prev => ({ ...prev, language: e.target.value }))} className="w-full p-3 border border-fb-border dark:border-fb-border-dark rounded-lg bg-white dark:bg-fb-surface text-fb-text dark:text-fb-text-dark">
+                            <option value="en">English</option>
+                            <option value="ne">नेपाली</option>
+                            <option value="hi">हिन्दी</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-fb-text dark:text-fb-text-dark mb-2">Timezone</label>
+                        <select value={preferences.timezone} onChange={(e) => setPreferences(prev => ({ ...prev, timezone: e.target.value }))} className="w-full p-3 border border-fb-border dark:border-fb-border-dark rounded-lg bg-white dark:bg-fb-surface text-fb-text dark:text-fb-text-dark">
+                            <option value="UTC">UTC</option>
+                            <option value="America/New_York">Eastern Time</option>
+                            <option value="Asia/Kathmandu">Nepal Time</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-fb-text dark:text-fb-text-dark mb-2">Date Format</label>
+                        <select value={preferences.dateFormat} onChange={(e) => setPreferences(prev => ({ ...prev, dateFormat: e.target.value }))} className="w-full p-3 border border-fb-border dark:border-fb-border-dark rounded-lg bg-white dark:bg-fb-surface text-fb-text dark:text-fb-text-dark">
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="mt-6">
+                    <h4 className="text-md font-semibold mb-4 text-fb-text dark:text-fb-text-dark">Interface Options</h4>
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-fb-light dark:hover:bg-fb-dark transition-colors">
+                            <input 
+                                type="checkbox" 
+                                checked={preferences.autoSave}
+                                onChange={(e) => setPreferences(prev => ({ ...prev, autoSave: e.target.checked }))}
+                                className="checkbox-green"
+                            />
+                            <div>
+                                <div className="font-medium text-fb-text dark:text-fb-text-dark">Auto-save</div>
+                                <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Automatically save your work</div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-fb-light dark:hover:bg-fb-dark transition-colors">
+                            <input 
+                                type="checkbox" 
+                                checked={preferences.compactMode}
+                                onChange={(e) => setPreferences(prev => ({ ...prev, compactMode: e.target.checked }))}
+                                className="checkbox-purple"
+                            />
+                            <div>
+                                <div className="font-medium text-fb-text dark:text-fb-text-dark">Compact Mode</div>
+                                <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Use a more compact interface</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+        </div>
+    );
+
+    const renderBillingTab = () => (
+        <div className="space-y-6">
+            <div className="card p-6">
+                <h3 className="text-lg font-semibold mb-4 text-fb-text dark:text-fb-text-dark">Current Plan</h3>
+                <div className="flex items-center justify-between p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                    <div>
+                        <div className="text-xl font-bold text-fb-text dark:text-fb-text-dark">{currentUser.plan} Plan</div>
+                        <div className="text-fb-secondary dark:text-fb-secondary-dark">Active since {currentUser.joinDate}</div>
+                    </div>
+                    <button className="btn btn-primary">Upgrade Plan</button>
+                </div>
+            </div>
+            
+            <div className="card p-6">
+                <h3 className="text-lg font-semibold mb-4 text-fb-text dark:text-fb-text-dark">Usage Statistics</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                        <div className="text-2xl font-bold text-fb-primary">47</div>
+                        <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Merges This Month</div>
+                    </div>
+                    <div className="text-center p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                        <div className="text-2xl font-bold text-fb-primary">2.3 GB</div>
+                        <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Storage Used</div>
+                    </div>
+                    <div className="text-center p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                        <div className="text-2xl font-bold text-fb-primary">12</div>
+                        <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Templates Created</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderDataTab = () => (
+        <div className="space-y-6">
+            <div className="card p-6">
+                <h3 className="text-lg font-semibold mb-4 text-fb-text dark:text-fb-text-dark">Data Management</h3>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                        <div>
+                            <div className="font-medium text-fb-text dark:text-fb-text-dark">Export Data</div>
+                            <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Download all your data</div>
+                        </div>
+                        <button className="btn btn-secondary">Export</button>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-fb-light dark:bg-fb-dark rounded-lg">
+                        <div>
+                            <div className="font-medium text-fb-text dark:text-fb-text-dark">Clear Cache</div>
+                            <div className="text-sm text-fb-secondary dark:text-fb-secondary-dark">Clear stored data and cache</div>
+                        </div>
+                        <button className="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="card p-6">
+                <h3 className="text-lg font-semibold mb-4 text-red-600 dark:text-red-500">Danger Zone</h3>
+                <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-lg">
+                    <p className="text-sm text-red-800 dark:text-red-300 mb-4">Permanently delete your account and all associated data. This action is irreversible.</p>
+                    <button onClick={handleDeleteAccount} className="btn btn-danger">Delete My Account</button>
+                </div>
+            </div>
+        </div>
+    );
+
+
+
     return (
         <div className="max-w-7xl mx-auto">
-            <div>
-                <h1 className="text-3xl font-bold flex items-center gap-3">
-                    <span className="material-icons-outlined text-blue-600 dark:text-blue-500">settings</span>Settings
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold flex items-center gap-3 text-fb-text dark:text-fb-text-dark">
+                    <span className="material-icons-outlined text-fb-primary">settings</span>Settings
                 </h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1 text-base">Manage your account settings and preferences.</p>
+                <p className="text-fb-secondary dark:text-fb-secondary-dark mt-1 text-base">Manage your account settings and preferences.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                <div className="lg:col-span-2">
-                    <div className="card">
-                        <div className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-inherit">
-                            <div className="flex items-center gap-4">
-                                <div className="relative group">
-                                    <img 
-                                        src={getUserAvatar(currentUser)} 
-                                        className="w-16 h-16 rounded-full object-cover" 
-                                        alt={currentUser.name}
-                                    />
-                                    <button 
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-center justify-center rounded-full transition-opacity duration-300"
-                                        disabled={isUploading}
-                                    >
-                                        {isUploading 
-                                            ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div> 
-                                            : <span className="material-icons-outlined text-white opacity-0 group-hover:opacity-100 transition-opacity">photo_camera</span>
-                                        }
-                                    </button>
-                                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold">{currentUser.name}</h2>
-                                    <p className="text-gray-500 dark:text-gray-400">{currentUser.email}</p>
-                                </div>
-                            </div>
-                            <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${currentUser.role === 'Admin' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>{currentUser.role}</span>
-                        </div>
-                        <div className="p-6">
-                            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 text-sm">
-                                <div>
-                                    <dt className="font-semibold text-gray-500 dark:text-gray-400">Status</dt>
-                                    <dd className="mt-1">
-                                        <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${currentUser.status === 'Active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'}`}>{currentUser.status}</span>
-                                        {currentUser.status === 'Inactive' && currentUser.inactiveDate && (
-                                            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">since {currentUser.inactiveDate}</span>
-                                        )}
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt className="font-semibold text-gray-500 dark:text-gray-400">Current Plan</dt>
-                                    <dd className="mt-1">
-                                        <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${planDetails[currentUser.plan].color}`}>{currentUser.plan}</span>
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt className="font-semibold text-gray-500 dark:text-gray-400">Join Date</dt>
-                                    <dd className="mt-1 font-medium">{currentUser.joinDate}</dd>
-                                </div>
-                                <div className="md:col-span-2">
-                                     <dt className="font-semibold text-gray-500 dark:text-gray-400 mb-2">Page Access</dt>
-                                     <dd>
-                                        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto rounded-lg p-3 bg-gray-50 dark:bg-slate-800 border border-inherit">
-                                            {userAccessPages.map(pageId => (
-                                                <span key={pageId} className="bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-slate-200 px-2.5 py-1 text-xs font-medium rounded-full">
-                                                    {allPagesMap.get(pageId) || pageId}
-                                                </span>
-                                            ))}
-                                        </div>
-                                     </dd>
-                                </div>
-                            </dl>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="space-y-8">
-                    <div className="card p-6">
-                        <h2 className="text-xl font-bold border-b border-inherit pb-4 mb-4">Account Security</h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Your account is secured by Google. To change your password or manage security settings, visit your Google Account.</p>
-                        <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
-                            Manage Google Account <span className="material-icons-outlined text-base">open_in_new</span>
-                        </a>
-                    </div>
-
-                    <div className="card p-6">
-                        <h2 className="text-xl font-bold border-b border-inherit pb-4 mb-4">Theme Settings</h2>
-                        <ThemeSettings />
-                    </div>
-
-                    <div className="card p-6">
-                        <h2 className="text-xl font-bold border-b border-inherit pb-4 mb-4">Notification Settings</h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Customize how you receive notifications:</p>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="font-medium">Merge Completion</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">Get notified when your merges complete</div>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" defaultChecked className="sr-only peer" />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="font-medium">System Updates</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">Receive notifications about system updates</div>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" defaultChecked className="sr-only peer" />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="font-medium">Marketing Emails</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">Receive tips, tutorials, and product updates</div>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="font-medium">Error Alerts</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">Get notified when operations fail</div>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" defaultChecked className="sr-only peer" />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="card p-6">
-                        <h2 className="text-xl font-bold border-b border-inherit pb-4 mb-4">Keyboard Shortcuts</h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Use these shortcuts to navigate faster:</p>
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between items-center py-1">
-                                <span>Dashboard</span>
-                                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl + D</kbd>
-                            </div>
-                            <div className="flex justify-between items-center py-1">
-                                <span>Merge It</span>
-                                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl + M</kbd>
-                            </div>
-                            <div className="flex justify-between items-center py-1">
-                                <span>Merge Logs</span>
-                                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl + L</kbd>
-                            </div>
-                            <div className="flex justify-between items-center py-1">
-                                <span>Templates</span>
-                                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl + T</kbd>
-                            </div>
-                            <div className="flex justify-between items-center py-1">
-                                <span>Toggle Theme</span>
-                                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl + /</kbd>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="card p-6">
-                        <h2 className="text-xl font-bold text-red-600 dark:text-red-500">Delete Account</h2>
-                        <div className="mt-4 p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-lg">
-                            <p className="text-sm text-red-800 dark:text-red-300">Permanently delete your account and all associated data. This action is irreversible.</p>
-                        </div>
-                        <button onClick={handleDeleteAccount} className="btn btn-danger mt-6">Delete My Account</button>
-                    </div>
-                </div>
+            {/* Tabs Navigation */}
+            <div className="border-b border-fb-border dark:border-fb-border-dark mb-8">
+                <nav className="flex space-x-8 overflow-x-auto">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                                activeTab === tab.id
+                                    ? 'border-fb-primary text-fb-primary'
+                                    : 'border-transparent text-fb-secondary dark:text-fb-secondary-dark hover:text-fb-text dark:hover:text-fb-text-dark hover:border-fb-border dark:hover:border-fb-border-dark'
+                            }`}
+                        >
+                            <span className="material-icons-outlined text-base">{tab.icon}</span>
+                            {tab.label}
+                        </button>
+                    ))}
+                </nav>
             </div>
+
+            {/* Tab Content */}
+            {renderTabContent()}
         </div>
     );
 };

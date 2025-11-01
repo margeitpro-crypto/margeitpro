@@ -116,14 +116,13 @@ const Templates: React.FC<PageProps> = ({ setModal, user }) => {
 
             <div className="card p-4 mb-8 sticky top-0 z-10 backdrop-blur-sm bg-white/80 dark:bg-slate-900/80">
                 <div className="flex flex-col md:flex-row gap-4">
-                    <div className="relative flex-grow">
-                        <span className="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                    <div className="input-with-icon flex-grow">
+                        <span className="material-icons-outlined input-icon text-gray-400">search</span>
                         <input
                             type="text"
                             placeholder="Search templates..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full p-2 pl-10"
                             aria-label="Search templates"
                         />
                     </div>

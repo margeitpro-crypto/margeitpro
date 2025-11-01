@@ -1,15 +1,17 @@
 import React from 'react';
 
 export const TableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({ rows = 5, cols = 6 }) => (
-    <div className="animate-pulse">
+    <>
         {Array.from({ length: rows }).map((_, i) => (
-            <div key={i} className="flex space-x-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <tr key={i} className="animate-pulse border-b border-gray-200 dark:border-gray-700">
                 {Array.from({ length: cols }).map((_, j) => (
-                    <div key={j} className={`h-4 bg-gray-200 dark:bg-gray-700 rounded ${j === 0 ? 'w-8' : j === 1 ? 'flex-1' : 'w-20'}`}></div>
+                    <td key={j} className="py-4 px-4">
+                        <div className={`h-4 bg-gray-200 dark:bg-gray-700 rounded ${j === 0 ? 'w-8' : j === 1 ? 'w-full' : 'w-20'}`}></div>
+                    </td>
                 ))}
-            </div>
+            </tr>
         ))}
-    </div>
+    </>
 );
 
 export const CardSkeleton: React.FC = () => (

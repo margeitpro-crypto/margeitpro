@@ -22,7 +22,7 @@ const StatCard: React.FC<{ title: string; value: string; change: string; icon: s
             <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
             <span className={`material-icons-outlined ${iconColor}`}>{icon}</span>
         </div>
-        <p className="text-3xl font-bold mt-2">{value}</p>
+        <p className={`${title === 'Templates & Success' ? 'text-2xl' : 'text-3xl'} font-bold mt-2`}>{value}</p>
         <p className="text-xs text-green-500 font-medium mt-1">{change}</p>
     </div>
 );

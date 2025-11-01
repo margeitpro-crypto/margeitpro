@@ -212,9 +212,9 @@ const MergeLogs: React.FC<PageProps> = ({ setModal, user }) => {
                 </div>
             </div>
             <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <div className="relative flex-grow">
-                    <span className="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">search</span>
-                    <input type="text" placeholder="Search by file, sheet, or user..." className="w-full p-2 pl-10" onChange={e => setFilters(f => ({ ...f, search: e.target.value }))} />
+                <div className="input-with-icon flex-grow">
+                    <span className="material-icons-outlined input-icon text-gray-400 dark:text-gray-500">search</span>
+                    <input type="text" placeholder="Search by file, sheet, or user..." onChange={e => setFilters(f => ({ ...f, search: e.target.value }))} />
                 </div>
                 <div className="flex gap-2 w-full md:w-auto">
                     <select className="p-2 w-full" onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}>

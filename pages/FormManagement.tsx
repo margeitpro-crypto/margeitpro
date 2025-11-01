@@ -1228,6 +1228,159 @@ const NotificationManagement: React.FC<PageProps> = ({ setModal, refreshNotifica
     );
 };
 
+// --- Social Links Management ---
+const SocialLinksManagement: React.FC<PageProps> = ({ setModal }) => {
+    const [socialLinks, setSocialLinks] = useState({
+        email: 'margeitpro@gmail.com',
+        phone: '9827792360',
+        whatsapp: '9827792360',
+        address: 'Beldandi-5, Kanchanpur, Nepal',
+        developer: 'Man Singh Rana'
+    });
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSave = async () => {
+        setIsSubmitting(true);
+        try {
+            // Here you would save to Firebase/database
+            console.log('Saving social links:', socialLinks);
+            setIsEditing(false);
+        } catch (err) {
+            console.error('Error saving social links:', err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div>
+            <div className="flex justify-between items-center pb-4">
+                <div>
+                    <h2 className="text-lg font-bold">Manage Social Links & Contact Info</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Update contact information and social media links.</p>
+                </div>
+                <button 
+                    onClick={() => setIsEditing(!isEditing)} 
+                    className="btn btn-primary"
+                >
+                    <span className="material-icons-outlined">{isEditing ? 'close' : 'edit'}</span>
+                    {isEditing ? 'Cancel' : 'Edit'}
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Email</label>
+                        {isEditing ? (
+                            <input
+                                type="email"
+                                value={socialLinks.email}
+                                onChange={e => setSocialLinks({...socialLinks, email: e.target.value})}
+                                className="w-full p-2 border rounded"
+                            />
+                        ) : (
+                            <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                                <span className="material-icons-outlined text-blue-500">email</span>
+                                <span>{socialLinks.email}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Phone</label>
+                        {isEditing ? (
+                            <input
+                                type="tel"
+                                value={socialLinks.phone}
+                                onChange={e => setSocialLinks({...socialLinks, phone: e.target.value})}
+                                className="w-full p-2 border rounded"
+                            />
+                        ) : (
+                            <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                                <span className="material-icons-outlined text-green-500">phone</span>
+                                <span>{socialLinks.phone}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">WhatsApp</label>
+                        {isEditing ? (
+                            <input
+                                type="tel"
+                                value={socialLinks.whatsapp}
+                                onChange={e => setSocialLinks({...socialLinks, whatsapp: e.target.value})}
+                                className="w-full p-2 border rounded"
+                            />
+                        ) : (
+                            <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                                <span className="material-icons-outlined text-green-600">chat</span>
+                                <span>{socialLinks.whatsapp}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Developer Name</label>
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                value={socialLinks.developer}
+                                onChange={e => setSocialLinks({...socialLinks, developer: e.target.value})}
+                                className="w-full p-2 border rounded"
+                            />
+                        ) : (
+                            <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                                <span className="material-icons-outlined text-purple-500">person</span>
+                                <span>{socialLinks.developer}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Address</label>
+                        {isEditing ? (
+                            <textarea
+                                value={socialLinks.address}
+                                onChange={e => setSocialLinks({...socialLinks, address: e.target.value})}
+                                className="w-full p-2 border rounded h-20 resize-none"
+                            />
+                        ) : (
+                            <div className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                                <span className="material-icons-outlined text-red-500 mt-1">location_on</span>
+                                <span>{socialLinks.address}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {isEditing && (
+                <div className="mt-6 flex justify-end gap-3">
+                    <button 
+                        onClick={() => setIsEditing(false)}
+                        className="btn btn-secondary"
+                        disabled={isSubmitting}
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        onClick={handleSave}
+                        className="btn btn-primary"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Saving...' : 'Save Changes'}
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
 // --- User Role Management ---
 const UserRoleManagement: React.FC<PageProps> = ({ setModal }) => {
     const [users, setUsers] = useState<User[]>([]);
@@ -1314,6 +1467,7 @@ const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotificat
         { id: 'billing', label: 'Billing Plans', icon: 'credit_card' },
         { id: 'notifications', label: 'Notifications', icon: 'campaign' },
         { id: 'roles', label: 'User Roles', icon: 'manage_accounts' },
+        { id: 'social', label: 'Social Links', icon: 'share' },
     ];
 
     const renderContent = () => {
@@ -1322,6 +1476,7 @@ const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotificat
             case 'billing': return <BillingManagement setModal={setModal} theme={theme} />;
             case 'notifications': return <NotificationManagement setModal={setModal} theme={theme} refreshNotifications={refreshNotifications} />;
             case 'roles': return <UserRoleManagement setModal={setModal} theme={theme} />;
+            case 'social': return <SocialLinksManagement setModal={setModal} theme={theme} />;
             default: return null;
         }
     };
@@ -1338,7 +1493,7 @@ const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotificat
 
             <div className="card">
                 <div className="border-b border-gray-200 dark:border-gray-700">
-                    <nav className="-mb-px flex space-x-8 px-6">
+                    <nav className="-mb-px flex space-x-8 px-6 overflow-x-auto">
                         {tabs.map(tab => (
                             <button
                                 key={tab.id}
