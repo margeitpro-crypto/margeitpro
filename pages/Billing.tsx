@@ -114,6 +114,10 @@ const Billing: React.FC<PageProps> = ({ navigateTo, user }) => {
                 setHistory(historyData);
             } catch (err) {
                 console.error("Failed to load billing data", err);
+                // Use mock data as fallback
+                const { MOCK_BILLING_PLANS } = await import('../types');
+                setPlans(MOCK_BILLING_PLANS.filter(p => p.isActive !== false));
+                setHistory([]);
             } finally {
                 setLoading(false);
             }

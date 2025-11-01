@@ -6,7 +6,7 @@ import {
     getBillingPlansData, addBillingPlan, updateBillingPlan, deleteBillingPlan,
     sendNotification, getNotificationsData, addNotification, updateNotification, deleteNotification,
     getUsersData,
-    updateUser,
+    updateUserByAdmin,
     uploadFile,
     getPaymentHistoryData,
 } from '../services/gasClient';
@@ -1247,7 +1247,7 @@ const UserRoleManagement: React.FC<PageProps> = ({ setModal }) => {
         setModal({ type: 'progress', props: { title: 'Updating...', message: 'Saving changes.' } });
         try {
             if (user.id) {
-                await updateUser(user.id, { [field]: value });
+                await updateUserByAdmin(user, user.id, { [field]: value });
                 await fetchData();
             }
         } catch (e) {

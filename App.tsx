@@ -33,6 +33,7 @@ import ToastContainer from './components/ToastContainer';
 // Mock data (for notifications, will be replaced by real data)
 import { MOCK_NOTIFICATIONS } from './types';
 import Help from './pages/Help';
+import { useKeyboardShortcuts, globalShortcuts } from './hooks/useKeyboardShortcuts';
 
 const allMenuItems = [...adminMenu.items, ...generalMenu.items];
 
@@ -144,6 +145,9 @@ const AppContent: React.FC = () => {
     }, [user, refreshNotifications]);
 
     const toggleTheme = () => setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+
+    // Keyboard shortcuts
+    useKeyboardShortcuts(globalShortcuts(navigateTo, toggleTheme));
 
     // --- Memoized Values ---
     const currentPageLabel = useMemo(() => {

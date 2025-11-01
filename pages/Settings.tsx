@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PageProps, User } from '../types';
-import { uploadFile, updateUser } from '../services/gasClient';
+import { uploadFile, updateUserByUser } from '../services/gasClient';
 import { adminMenu, generalMenu } from '../components/Layout';
 
 const allPagesMap = new Map([...adminMenu.items, ...generalMenu.items].map(item => [item.id, item.label]));
@@ -19,7 +19,7 @@ const Settings: React.FC<PageProps> = ({ setModal, user }) => {
             setIsUploading(true);
             try {
                 const uploadResult = await uploadFile(file);
-                await updateUser(currentUser.id, { profilePictureId: uploadResult.id });
+                await updateUserByUser(currentUser, { profilePictureUrl: uploadResult.url });
                 // Note: The profile picture will visually update on the next page load/refresh
                 // as this component cannot directly mutate the state in App.tsx.
                 alert("Profile picture updated successfully! The change will be visible on your next session.");
@@ -158,6 +158,80 @@ const Settings: React.FC<PageProps> = ({ setModal, user }) => {
                         <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                             Manage Google Account <span className="material-icons-outlined text-base">open_in_new</span>
                         </a>
+                    </div>
+
+                    <div className="card p-6">
+                        <h2 className="text-xl font-bold border-b border-inherit pb-4 mb-4">Notification Settings</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Customize how you receive notifications:</p>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="font-medium">Merge Completion</div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">Get notified when your merges complete</div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="font-medium">System Updates</div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">Receive notifications about system updates</div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="font-medium">Marketing Emails</div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">Receive tips, tutorials, and product updates</div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" className="sr-only peer" />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="font-medium">Error Alerts</div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">Get notified when operations fail</div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card p-6">
+                        <h2 className="text-xl font-bold border-b border-inherit pb-4 mb-4">Keyboard Shortcuts</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Use these shortcuts to navigate faster:</p>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-center py-1">
+                                <span>Dashboard</span>
+                                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl + D</kbd>
+                            </div>
+                            <div className="flex justify-between items-center py-1">
+                                <span>Merge It</span>
+                                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl + M</kbd>
+                            </div>
+                            <div className="flex justify-between items-center py-1">
+                                <span>Merge Logs</span>
+                                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl + L</kbd>
+                            </div>
+                            <div className="flex justify-between items-center py-1">
+                                <span>Templates</span>
+                                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl + T</kbd>
+                            </div>
+                            <div className="flex justify-between items-center py-1">
+                                <span>Toggle Theme</span>
+                                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl + /</kbd>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="card p-6">

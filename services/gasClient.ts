@@ -36,6 +36,52 @@ export const updateUser = (userId: string, userData: Partial<User>) => {
     return updateDoc(userDocRef, userData);
 };
 
+// Admin-only update function with full permissions
+export const updateUserByAdmin = async (adminUser: User, targetUserId: string, userData: Partial<User>) => {
+    // Check if the current user is an admin
+    if (adminUser.role !== 'Admin') {
+        throw new Error('Unauthorized: Only admins can perform this action');
+    }
+
+    // Prevent admins from modifying their own admin status (security measure)
+    if (adminUser.id === targetUserId && userData.role && userData.role !== 'Admin') {
+        throw new Error('Admins cannot remove their own admin privileges');
+    }
+
+    // FIX: Changed to Firebase v9 syntax.
+    const userDocRef = doc(db, 'users', targetUserId);
+    return updateDoc(userDocRef, userData);
+};
+
+// User-only update function with limited permissions
+export const updateUserByUser = async (currentUser: User, userData: Partial<User>) => {
+    // Users can only update their own data
+    if (!currentUser.id) {
+        throw new Error('User ID is required');
+    }
+
+    // Define allowed fields for user updates
+    const allowedFields = ['profilePictureId', 'profilePictureUrl'];
+    const filteredData: Partial<Pick<User, 'profilePictureId' | 'profilePictureUrl'>> = {};
+
+    // Only allow updates to permitted fields
+    allowedFields.forEach(field => {
+        const value = userData[field as keyof User];
+        if (value !== undefined) {
+            filteredData[field as keyof typeof filteredData] = value as any;
+        }
+    });
+
+    // If no allowed fields were provided, throw error
+    if (Object.keys(filteredData).length === 0) {
+        throw new Error('No valid fields to update. Users can only update profile picture.');
+    }
+
+    // FIX: Changed to Firebase v9 syntax.
+    const userDocRef = doc(db, 'users', currentUser.id);
+    return updateDoc(userDocRef, filteredData);
+};
+
 export const deleteUser = (userId: string) => {
     // FIX: Changed to Firebase v9 syntax.
     const userDocRef = doc(db, 'users', userId);
@@ -331,10 +377,18 @@ export const deleteTemplate = async (id: string) => {
     return deleteDoc(doc(db, 'templates', id));
 };
 
-export const getMergeLogsData = async (): Promise<MergeLog[]> => {
+export const getMergeLogsData = async (userEmail?: string): Promise<MergeLog[]> => {
     // FIX: Changed to Firebase v9 syntax.
-    const logSnapshot = await getDocs(collection(db, 'mergeLogs'));
-    return snapshotToArray<MergeLog>(logSnapshot);
+    if (userEmail) {
+        // Filter by user email for regular users
+        const q = query(collection(db, 'mergeLogs'), where("user", "==", userEmail));
+        const logSnapshot = await getDocs(q);
+        return snapshotToArray<MergeLog>(logSnapshot);
+    } else {
+        // Admin gets all logs
+        const logSnapshot = await getDocs(collection(db, 'mergeLogs'));
+        return snapshotToArray<MergeLog>(logSnapshot);
+    }
 };
 
 export const addMergeLog = async (log: Partial<MergeLog>) => {

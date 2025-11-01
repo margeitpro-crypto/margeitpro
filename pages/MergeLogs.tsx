@@ -10,7 +10,7 @@ const downloadFormats = {
     docs: [ { format: 'docx', label: 'Word (.docx)' }, { format: 'pdf', label: 'PDF (.pdf)' }, { format: 'rtf', label: 'RTF (.rtf)' }, { format: 'txt', label: 'Text (.txt)' } ]
 };
 
-const MergeLogs: React.FC<PageProps> = ({ setModal }) => {
+const MergeLogs: React.FC<PageProps> = ({ setModal, user }) => {
     const [logs, setLogs] = useState<MergeLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ search: '', type: 'all', status: 'all' });
@@ -22,10 +22,14 @@ const MergeLogs: React.FC<PageProps> = ({ setModal }) => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const data = await getMergeLogsData() as MergeLog[];
+            // Pass user email to filter logs, or undefined for admin to see all
+            const userEmail = user?.role === 'Admin' ? undefined : user?.email;
+            const data = await getMergeLogsData(userEmail) as MergeLog[];
             setLogs(data);
         } catch (err) {
-            console.error(err);
+            console.error('Error fetching merge logs:', err);
+            // Set empty array on error
+            setLogs([]);
         } finally {
             setLoading(false);
         }

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { PageProps, MergeLog } from '../types';
-import { runSlidesMerge, runDocsMerge, runSlidesPreview, runDocsPreview, addMergeLog } from '../services/gasClient';
+import { runSlidesMerge, runDocsMerge, runSlidesPreview, runDocsPreview, addMergeLog, addNotification } from '../services/gasClient';
 
 type MergeMode = 'slides' | 'docs';
 
@@ -107,9 +107,29 @@ export default function MargeItPage({ setModal, user }: PageProps) {
           templateId: formData.templateId,
       }));
 
-      // Save to Firebase
-      for (const result of newResults) {
-          await addMergeLog(result);
+      // Save to Firebase and create notification
+      try {
+        for (const result of newResults) {
+            await addMergeLog(result);
+        }
+        // Auto notification for successful merge
+        try {
+          await addNotification({
+          id: `merge_success_${Date.now()}`,
+          icon: 'check_circle',
+          iconColor: 'text-green-500',
+          title: 'Merge Complete',
+          description: `Successfully merged "${formData.outputFileName || 'files'}" - ${newResults.length} file(s) created.`,
+          timestamp: new Date().toLocaleString(),
+          isNew: true,
+          priority: 'Medium',
+          category: 'Merge Status'
+          });
+        } catch (notifError) {
+          console.warn('Failed to send success notification:', notifError);
+        }
+      } catch (logError) {
+        console.warn('Failed to save merge log to Firebase:', logError);
       }
 
       setResults(prev => [...newResults, ...prev]);
@@ -132,8 +152,28 @@ export default function MargeItPage({ setModal, user }: PageProps) {
           templateId: formData.templateId,
       };
 
-      // Save failed result to Firebase
-      await addMergeLog(failedResult);
+      // Save failed result and create notification
+      try {
+        await addMergeLog(failedResult);
+        // Auto notification for failed merge
+        try {
+          await addNotification({
+          id: `merge_failed_${Date.now()}`,
+          icon: 'error',
+          iconColor: 'text-red-500',
+          title: 'Merge Failed',
+          description: `Failed to merge "${formData.outputFileName || 'files'}": ${errorMessage}`,
+          timestamp: new Date().toLocaleString(),
+          isNew: true,
+          priority: 'High',
+          category: 'Merge Status'
+          });
+        } catch (notifError) {
+          console.warn('Failed to send error notification:', notifError);
+        }
+      } catch (logError) {
+        console.warn('Failed to save failed merge log to Firebase:', logError);
+      }
 
       setResults(prev => [failedResult, ...prev]);
     } finally {
@@ -310,10 +350,10 @@ export default function MargeItPage({ setModal, user }: PageProps) {
             <div><Label htmlFor={`${currentMode}-outputFileName`}>Output File Name (Optional)</Label>{renderInput('drive_file_rename_outline', 'text-gray-400', `${currentMode}-outputFileName`, "outputFileName", "e.g., Monthly_Report", formData.outputFileName, handleChange)}</div>
         </div>
         <div className="flex flex-wrap gap-3 mt-8">
-          <button onClick={() => handlePreview(currentMode)} disabled={isProcessing} className="btn btn-info bg-blue-500 hover:bg-blue-600 text-white"><span className="material-icons-outlined text-lg">visibility</span>Preview</button>
-          <button onClick={() => handleRunMerge('custom', currentMode)} disabled={isProcessing} className="btn btn-warning bg-yellow-500 hover:bg-yellow-600 text-white">Custom (One file per row)</button>
-          <button onClick={() => handleRunMerge('allinone', currentMode)} disabled={isProcessing} className="btn btn-primary"><span className="material-icons-outlined text-lg text-yellow-300">auto_awesome</span>All In One (One file for all)</button>
-          <button onClick={() => handleReset(currentMode)} className="btn btn-danger" disabled={isProcessing}>Clear</button>
+          <button onClick={() => handlePreview(currentMode)} disabled={isProcessing} className="btn btn-info bg-blue-500 hover:bg-blue-600 text-white hover:scale-105 transition-all duration-200"><span className="material-icons-outlined text-lg">visibility</span>Preview</button>
+          <button onClick={() => handleRunMerge('custom', currentMode)} disabled={isProcessing} className="btn btn-warning bg-yellow-500 hover:bg-yellow-600 text-white hover:scale-105 transition-all duration-200">Custom (One file per row)</button>
+          <button onClick={() => handleRunMerge('allinone', currentMode)} disabled={isProcessing} className="btn btn-primary hover:scale-105 transition-all duration-200 glow-effect"><span className="material-icons-outlined text-lg text-yellow-300">auto_awesome</span>All In One (One file for all)</button>
+          <button onClick={() => handleReset(currentMode)} className="btn btn-danger hover:scale-105 transition-all duration-200" disabled={isProcessing}>Clear</button>
         </div>
       </div>
     );
@@ -368,12 +408,12 @@ export default function MargeItPage({ setModal, user }: PageProps) {
                                 </thead>
                                 <tbody className="text-sm">
                                     {sortedResults.map(log => (
-                                        <tr key={log.sn} className="border-b border-inherit last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                                        <tr key={log.sn} className="border-b border-inherit last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors duration-200">
                                             <td className="py-4 px-4 text-gray-500 dark:text-gray-400">{log.sn}</td>
                                             <td className="py-4 px-4 font-medium">{log.fileName}</td>
                                             <td className="py-4 px-4 text-gray-500 dark:text-gray-400">{log.type}</td>
                                             <td className="py-4 px-4">
-                                                <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${log.status === 'Success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>{log.status}</span>
+                                                <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full transition-all duration-300 ${log.status === 'Success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 success-animation' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 error-shake'}`}>{log.status}</span>
                                             </td>
                                             <td className="py-4 px-4 text-gray-500 dark:text-gray-400">{log.timestamp}</td>
                                           <td className="py-4 px-4 text-right">

@@ -7,21 +7,31 @@ const LoginPage: React.FC = () => {
     const handleGoogleSignIn = async () => {
         try {
             await googleSignIn();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Google Sign-In Failed:", error);
-            if (error.code === 'auth/unauthorized-domain') {
-                alert("This domain is not authorized for Google Sign-In. Please add '192.168.100.3' and 'localhost' to the authorized domains in Firebase Console -> Authentication -> Settings -> Authorized domains.");
-            } else {
-                alert("Failed to sign in with Google. Please try again.");
+            
+            let errorMessage = "Failed to sign in with Google. Please try again.";
+            
+            if (error?.code === 'auth/unauthorized-domain') {
+                errorMessage = "This domain is not authorized for Google Sign-In. Please contact the administrator.";
+            } else if (error?.code === 'auth/popup-blocked') {
+                errorMessage = "Popup was blocked. Please allow popups for this site and try again.";
+            } else if (error?.code === 'auth/cancelled-popup-request') {
+                errorMessage = "Sign-in was cancelled. Please try again.";
+            } else if (error?.code === 'auth/network-request-failed') {
+                errorMessage = "Network error. Please check your internet connection and try again.";
             }
+            
+            alert(errorMessage);
         }
     };
 
     useEffect(() => {
-        if (user != null) {
-            // Redirect to user-dashboard or admin-control-center based on user role
-            const defaultPage = user.accessPage?.includes('admin-control-center') ? 'admin-control-center' : 'user-dashboard';
-            window.location.hash = defaultPage;
+        if (user) {
+            // Small delay to ensure user data is fully loaded
+            setTimeout(() => {
+                window.location.hash = 'user-dashboard';
+            }, 100);
         }
     }, [user]);
 

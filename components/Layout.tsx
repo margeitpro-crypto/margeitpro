@@ -173,15 +173,15 @@ export const Header: React.FC<HeaderProps> = ({ setSidebarOpen, toggleTheme, the
                 <div className="hidden md:block h-6 w-px bg-gray-200 dark:bg-slate-700 mx-2" />
                 
                 <div className="relative" ref={notifRef}>
-                    <span onClick={() => setNotifOpen(p => !p)} className="material-icons-outlined cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-yellow-500 dark:text-yellow-400 relative">
+                    <span onClick={() => setNotifOpen(p => !p)} className="material-icons-outlined cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-yellow-500 dark:text-yellow-400 relative transition-all duration-200 hover:scale-110">
                         notifications
                         {notifications.filter(n => n.isNew).length > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold notification-badge animate-pulse">
                                 {notifications.filter(n => n.isNew).length}
                             </span>
                         )}
                     </span>
-                    <div className={`card absolute right-0 mt-3 w-80 rounded-xl z-50 ${notifOpen ? '' : 'hidden'}`}>
+                    <div className={`card absolute right-0 mt-3 w-80 rounded-xl z-50 transition-all duration-300 ${notifOpen ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-2 pointer-events-none'}`}>
                         <div className="p-3 border-b border-inherit font-semibold">Notifications</div>
                         <ul className="max-h-64 overflow-y-auto">
                             {[...notifications]
@@ -193,7 +193,7 @@ export const Header: React.FC<HeaderProps> = ({ setSidebarOpen, toggleTheme, the
                                 })
                                 .slice(0, 5)
                                 .map((notif, index) => (
-                                <li key={index} className="p-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                                <li key={index} className="p-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                                     <div className="flex items-start gap-3">
                                         <span className={`material-icons-outlined ${notif.iconColor} text-sm mt-0.5`}>{notif.icon}</span>
                                         <div className="flex-1 min-w-0">

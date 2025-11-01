@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+ import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
 import { uploadFile } from '../services/gasClient';
 import { adminMenu, generalMenu } from './Layout';
@@ -123,7 +123,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
             let finalUserData = { ...formData };
             if (newProfilePicture) {
                 const uploadResult = await uploadFile(newProfilePicture);
-                finalUserData.profilePictureId = uploadResult.id;
+                finalUserData.profilePictureUrl = uploadResult.url;
             }
 
             const userDataToSave = {

@@ -24,10 +24,23 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Add localhost and local IP to authorized domains for development
-if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168.')) {
-  googleProvider.setCustomParameters({
-    prompt: 'select_account',
-    client_id: '873028272369-ibukapf98tkak35gb2eigbsjt0s35van.apps.googleusercontent.com'
-  });
+// Configure auth settings for development
+if (typeof window !== 'undefined') {
+  // Enable auth emulator for localhost development if needed
+  const isLocalhost = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1' || 
+                     window.location.hostname.startsWith('192.168.');
+  
+  if (isLocalhost) {
+    console.log('Running on localhost - Firebase auth configured for development');
+  }
 }
+
+// Configure Google provider for development
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
+// Add scopes
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
