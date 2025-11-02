@@ -1,0 +1,913 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Facebook Theme Variables */
+:root {
+  /* Facebook Light Theme */
+  --fb-primary: #1877F2;
+  --fb-primary-hover: #166FE5;
+  --fb-blue-dark: #4267B2;
+  --fb-primary-light: #E7F3FF;
+  --fb-background: #F0F2F5;
+  --fb-surface: #FFFFFF;
+  --fb-border: #ccd0d5;
+  --fb-text: #050505;
+  --fb-text-primary: #050505;
+  --fb-text-secondary: #606770;
+  --fb-text-tertiary: #8A8D91;
+  --fb-success: #36a420;
+  --fb-error: #E41E3F;
+  --fb-warning: #F7B801;
+  --fb-dark-bg: #18191a;
+  --fb-dark-surface: #242526;
+  --fb-text-dark: #e4e6eb;
+  --fb-secondary-dark: #b0b3b8;
+  
+  /* Font Sizes */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-lg: 0.9375rem;
+  --text-xl: 1rem;
+  
+  /* Spacing */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+}
+
+/* Facebook Dark Theme */
+.dark {
+  --fb-background: #18191A;
+  --fb-surface: #242526;
+  --fb-surface-elevated: #3A3B3C;
+  --fb-border: #3E4042;
+  --fb-text-primary: #E4E6EA;
+  --fb-text-secondary: #B0B3B8;
+  --fb-text-tertiary: #8A8D91;
+  --fb-text: #e4e6eb;
+  --fb-text-dark: #e4e6eb;
+  --fb-secondary-dark: #b0b3b8;
+  --fb-border-dark: #3e4042;
+  --fb-dark-surface: #242526;
+  --fb-dark-bg: #18191a;
+}
+
+/* Facebook Color Variants */
+[data-primary-color="facebook"] {
+  --primary-50: #E7F3FF;
+  --primary-100: #E7F3FF;
+  --primary-500: #1877F2;
+  --primary-600: #1877F2;
+  --primary-700: #166FE5;
+}
+
+[data-primary-color="blue"] {
+  --primary-50: #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --primary-700: #1d4ed8;
+}
+
+[data-primary-color="green"] {
+  --primary-50: #f0fdf4;
+  --primary-100: #dcfce7;
+  --primary-500: #22c55e;
+  --primary-600: #16a34a;
+  --primary-700: #15803d;
+}
+
+[data-primary-color="red"] {
+  --primary-50: #fef2f2;
+  --primary-100: #fee2e2;
+  --primary-500: #ef4444;
+  --primary-600: #dc2626;
+  --primary-700: #b91c1c;
+}
+
+/* Font Size Variants */
+[data-font-size="small"] {
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.1875rem;
+}
+
+[data-font-size="large"] {
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.1875rem;
+  --text-xl: 1.3125rem;
+}
+
+/* Border Radius Variants */
+[data-border-radius="none"] {
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+}
+
+[data-border-radius="small"] {
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+}
+
+[data-border-radius="large"] {
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+/* Animation Control */
+[data-animations="false"] * {
+  animation-duration: 0s !important;
+  transition-duration: 0s !important;
+}
+
+/* Facebook Shadows */
+.shadow-fb {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dark .shadow-fb {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.shadow-fb-lg {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.dark .shadow-fb-lg {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Custom Styles for MargeItPro */
+
+/* Smooth Animations */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Loading Spinner */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Facebook Card Styles */
+.card {
+  background-color: var(--fb-surface);
+  border: 1px solid var(--fb-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.dark .card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.card:hover {
+  @apply shadow-lg transform -translate-y-1;
+}
+
+.card-interactive {
+  @apply cursor-pointer;
+}
+
+.card-interactive:hover {
+  @apply shadow-xl transform -translate-y-2;
+}
+
+/* Button Styles */
+.btn {
+  font-weight: 600;
+  transition: all 0.2s ease;
+  outline: none;
+  cursor: pointer;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+}
+
+.btn-primary {
+  background-color: var(--fb-primary);
+  color: white;
+  border: 1px solid var(--fb-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--fb-primary-hover);
+  border-color: var(--fb-primary-hover);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:focus {
+  box-shadow: 0 0 0 2px var(--fb-primary-light);
+}
+
+.btn-secondary {
+  background-color: var(--fb-border);
+  color: var(--fb-text-primary);
+  border: 1px solid var(--fb-border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--fb-text-tertiary);
+}
+
+.dark .btn-secondary {
+  background-color: var(--fb-surface-elevated);
+  border-color: var(--fb-border);
+}
+
+.dark .btn-secondary:hover {
+  background-color: var(--fb-border);
+}
+
+.btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+/* Facebook Input Styles */
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  background-color: var(--fb-surface);
+  border: 1px solid var(--fb-border);
+  color: var(--fb-text-primary);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  transition: border-color 0.2s ease;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--fb-primary);
+  box-shadow: 0 0 0 2px var(--fb-primary-light);
+}
+
+/* Facebook Sidebar Styles */
+.sidebar {
+  background-color: var(--fb-surface);
+  border-right: 1px solid var(--fb-border);
+}
+
+.menu-item {
+  color: var(--fb-text-secondary);
+  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
+}
+
+.menu-item:hover {
+  background-color: var(--fb-border);
+  color: var(--fb-text-primary);
+}
+
+.dark .menu-item:hover {
+  background-color: var(--fb-surface-elevated);
+}
+
+.menu-active {
+  background-color: var(--fb-primary-light);
+  color: var(--fb-primary);
+  font-weight: 600;
+}
+
+.dark .menu-active {
+  background-color: var(--fb-surface-elevated);
+  color: var(--fb-primary);
+}
+
+/* Facebook Theme Styles */
+.bg-light-background {
+  background-color: var(--fb-background);
+}
+
+.bg-dark-background {
+  background-color: var(--fb-background);
+}
+
+body {
+  background-color: var(--fb-background);
+  color: var(--fb-text-primary);
+  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.34;
+  transition: background-color 0.3s;
+}
+
+* {
+  font-family: inherit;
+}
+
+/* Sortable Header */
+.sortable-header:hover {
+  @apply bg-gray-50 dark:bg-slate-800;
+}
+
+/* Notification Badge */
+.notification-badge {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Success Animation */
+.success-animation {
+  animation: successPulse 0.6s ease-in-out;
+}
+
+@keyframes successPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Error Animation */
+.error-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Fade In Animation */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide In Animation */
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* Scale Animation */
+.scale-animation {
+  transition: transform 0.2s ease-in-out;
+}
+
+.scale-animation:hover {
+  transform: scale(1.02);
+}
+
+/* Glow Effect */
+.glow-effect {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.glow-effect:hover {
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+}
+
+/* Progress Bar Animation */
+.progress-bar {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
+  background-size: 200% 100%;
+  animation: progressShine 2s linear infinite;
+}
+
+@keyframes progressShine {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Floating Animation */
+.floating {
+  animation: floating 3s ease-in-out infinite;
+}
+
+@keyframes floating {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Typography */
+h1 { font-size: calc(var(--text-xl) * 1.5); }
+h2 { font-size: calc(var(--text-xl) * 1.25); }
+h3 { font-size: var(--text-xl); }
+h4 { font-size: var(--text-lg); }
+h5 { font-size: var(--text-base); }
+h6 { font-size: var(--text-sm); }
+
+.text-xs { font-size: var(--text-xs); }
+.text-sm { font-size: var(--text-sm); }
+.text-base { font-size: var(--text-base); }
+.text-lg { font-size: var(--text-lg); }
+.text-xl { font-size: var(--text-xl); }
+
+/* Facebook Color Utilities */
+.text-primary { color: var(--fb-primary); }
+.bg-primary { background-color: var(--fb-primary); }
+.border-primary { border-color: var(--fb-primary); }
+.text-primary-light { color: var(--fb-primary); }
+.bg-primary-light { background-color: var(--fb-primary-light); }
+.text-secondary { color: var(--fb-text-secondary); }
+.text-tertiary { color: var(--fb-text-tertiary); }
+.bg-surface { background-color: var(--fb-surface); }
+.border-fb { border-color: var(--fb-border); }
+
+/* Button Size Variants */
+.btn-sm {
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: var(--text-xs);
+}
+
+.btn-lg {
+  padding: var(--spacing-3) var(--spacing-6);
+  font-size: var(--text-base);
+}
+
+/* Spacing Utilities */
+.p-theme { padding: var(--spacing-4); }
+.px-theme { padding-left: var(--spacing-4); padding-right: var(--spacing-4); }
+.py-theme { padding-top: var(--spacing-4); padding-bottom: var(--spacing-4); }
+.m-theme { margin: var(--spacing-4); }
+.mx-theme { margin-left: var(--spacing-4); margin-right: var(--spacing-4); }
+.my-theme { margin-top: var(--spacing-4); margin-bottom: var(--spacing-4); }
+
+/* Border Radius Utilities */
+.rounded-theme-sm { border-radius: var(--radius-sm); }
+.rounded-theme { border-radius: var(--radius-md); }
+.rounded-theme-lg { border-radius: var(--radius-lg); }
+.rounded-theme-xl { border-radius: var(--radius-xl); }
+
+/* Facebook Pricing Card Styles */
+.card-shadow-hover {
+  transition: all 0.3s ease;
+}
+
+.card-shadow-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(24, 119, 242, 0.2), 0 4px 6px -2px rgba(24, 119, 242, 0.05);
+}
+
+.dark .card-shadow-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -2px rgba(255, 255, 255, 0.05);
+}
+
+/* Facebook Theme Color Classes */
+.text-fb-text {
+  color: #050505;
+}
+
+.dark .text-fb-text-dark {
+  color: #e4e6eb;
+}
+
+.text-fb-secondary {
+  color: #606770;
+}
+
+.dark .text-fb-secondary-dark {
+  color: #b0b3b8;
+}
+
+.border-fb-border {
+  border-color: #ccd0d5;
+}
+
+.dark .border-fb-border-dark {
+  border-color: #3e4042;
+}
+
+.bg-fb-surface {
+  background-color: #ffffff;
+}
+
+.dark .bg-fb-dark-surface {
+  background-color: #242526;
+}
+
+.bg-fb-primary {
+  background-color: #1877F2;
+}
+
+.text-fb-primary {
+  color: #1877F2;
+}
+
+.bg-fb-light {
+  background-color: #F0F2F5;
+}
+
+.dark .bg-fb-dark {
+  background-color: #18191a;
+}
+
+.hover\:bg-fb-light:hover {
+  background-color: #F0F2F5;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: #f3f4f6;
+}
+
+.hover\:scale-\[1\.02\]:hover {
+  transform: scale(1.02);
+}
+
+.hover\:scale-\[1\.03\]:hover {
+  transform: scale(1.03);
+}
+
+.hover\:scale-\[1\.07\]:hover {
+  transform: scale(1.07);
+}
+
+.scale-105 {
+  transform: scale(1.05);
+}
+
+/* Facebook Success Color */
+.text-green-500 {
+  color: #10b981;
+}
+
+.bg-green-500 {
+  background-color: #10b981;
+}
+
+/* Material Icons Styling */
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Pricing Card Animation */
+@keyframes cardHover {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-4px) scale(1.02); }
+}
+
+.pricing-card:hover {
+  animation: cardHover 0.3s ease forwards;
+}
+
+/* Facebook Button Hover Effects */
+.btn-primary:hover {
+  background-color: #4267B2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+}
+
+/* Dark Mode Adjustments */
+.dark .text-fb-text {
+  color: #e4e6eb;
+}
+
+.dark .text-fb-secondary {
+  color: #b0b3b8;
+}
+
+.dark .border-fb-border {
+  border-color: #3e4042;
+}
+
+.dark .bg-fb-surface {
+  background-color: #242526;
+}
+
+.dark .bg-fb-light {
+  background-color: #18191a;
+}
+
+/* Input Field with Icon Styles */
+.input-with-icon {
+  position: relative;
+  display: block;
+}
+
+.input-with-icon .input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 10;
+  font-size: 20px;
+}
+
+.input-with-icon input {
+  padding-left: 44px !important;
+  width: 100%;
+  padding-right: 16px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border: 1px solid var(--fb-border);
+  border-radius: 8px;
+  background-color: white;
+  color: var(--fb-text);
+  transition: all 0.2s ease;
+}
+
+.dark .input-with-icon input {
+  border-color: var(--fb-border-dark);
+  background-color: var(--fb-dark-surface);
+  color: var(--fb-text-dark);
+}
+
+.input-with-icon input:focus {
+  outline: none;
+  border-color: var(--fb-primary);
+  box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+}
+
+/* Colorful Checkbox Styles */
+input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #1877F2;
+  border-color: #1877F2;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e");
+  background-size: 14px 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+input[type="checkbox"]:hover {
+  border-color: #1877F2;
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
+}
+
+input[type="checkbox"]:focus {
+  outline: none;
+  border-color: #1877F2;
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.2);
+}
+
+/* Dark mode checkbox */
+.dark input[type="checkbox"] {
+  background-color: #374151;
+  border-color: #6b7280;
+}
+
+.dark input[type="checkbox"]:checked {
+  background-color: #1877F2;
+  border-color: #1877F2;
+}
+
+.dark input[type="checkbox"]:hover {
+  border-color: #1877F2;
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.15);
+}
+
+/* Animated checkbox variants */
+input[type="checkbox"].checkbox-green:checked {
+  background-color: #10b981;
+  border-color: #10b981;
+}
+
+input[type="checkbox"].checkbox-red:checked {
+  background-color: #ef4444;
+  border-color: #ef4444;
+}
+
+input[type="checkbox"].checkbox-purple:checked {
+  background-color: #8b5cf6;
+  border-color: #8b5cf6;
+}
+
+input[type="checkbox"].checkbox-orange:checked {
+  background-color: #f59e0b;
+  border-color: #f59e0b;
+}
+
+input[type="checkbox"].checkbox-pink:checked {
+  background-color: #ec4899;
+  border-color: #ec4899;
+}
+
+/* Checkbox animation */
+input[type="checkbox"]:checked {
+  animation: checkboxPop 0.2s ease-in-out;
+}
+
+@keyframes checkboxPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Radio button styles */
+input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 50%;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+input[type="radio"]:checked {
+  border-color: #1877F2;
+  background-color: white;
+}
+
+input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #1877F2;
+  animation: radioPop 0.2s ease-in-out;
+}
+
+@keyframes radioPop {
+  0% { transform: translate(-50%, -50%) scale(0); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+input[type="radio"]:hover {
+  border-color: #1877F2;
+  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
+}
+
+.dark input[type="radio"] {
+  background-color: #374151;
+  border-color: #6b7280;
+}
+
+.dark input[type="radio"]:checked {
+  border-color: #1877F2;
+  background-color: #374151;
+}
+/* Admin Panel Professional Styles */
+.admin-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-effect {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-admin {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+.btn-admin:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+}
+
+/* Enhanced Sidebar */
+.sidebar {
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+.dark .sidebar {
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Enhanced Menu Items */
+.menu-item:hover {
+  transform: translateX(4px) scale(1.02) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .menu-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.menu-active {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3) !important;
+  transform: translateX(4px) scale(1.02) !important;
+}
+
+.dark .menu-active {
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
+}
+
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
