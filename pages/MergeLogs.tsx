@@ -6,8 +6,8 @@ import { useFloating, FloatingPortal, flip, shift, offset } from '@floating-ui/r
 import { getFileInfo, getDownloadUrl } from '../services/googleFileUtils';
 
 const downloadFormats = {
-    slides: [ { format: 'pptx', label: 'PowerPoint (.pptx)' }, { format: 'pdf', label: 'PDF (.pdf)' }, { format: 'txt', label: 'Text (.txt)' } ],
-    docs: [ { format: 'docx', label: 'Word (.docx)' }, { format: 'pdf', label: 'PDF (.pdf)' }, { format: 'rtf', label: 'RTF (.rtf)' }, { format: 'txt', label: 'Text (.txt)' } ]
+    slides: [ { format: 'pptx', label: 'PowerPoint (.pptx)' }, { format: 'pdf', label: 'PDF (.pdf)' },{ format: 'txt', label: 'Text (.txt)' },{ format: 'jpeg', label: 'JPEG image (.jpeg)' },{ format: 'png', label: 'PNG image (.png)' }, { format: 'svg', label: 'SVG (.svg)' } ],
+    docs: [{ format: 'docx', label: 'Word (.docx)' },{ format: 'pdf', label: 'PDF (.pdf)' },{ format: 'txt', label: 'Text (.txt)' },{ format: 'html', label: 'Web page (.html, zipped)' },{ format: 'epub', label: 'EPUB (.epub)' }]
 };
 
 const MergeLogs: React.FC<PageProps> = ({ setModal, user }) => {
@@ -28,6 +28,7 @@ const MergeLogs: React.FC<PageProps> = ({ setModal, user }) => {
                 setOpenDropdown(null);
             }
         },
+        placement: 'bottom-end',
         middleware: [offset(5), flip(), shift()],
     });
 
@@ -339,7 +340,31 @@ const MergeLogs: React.FC<PageProps> = ({ setModal, user }) => {
                                     <td className="py-4 px-4 text-right">
                                         <div className="inline-block text-left">
                                             {log.status === 'Success' ? (
-                                                <button onClick={(e) => handleDropdownToggle(e, log.sn)} className="material-icons-outlined rounded-full p-1 transition-colors" style={{ color: 'var(--fb-text-secondary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>more_vert</button>
+                                                <button 
+                                                    onClick={(e) => handleDropdownToggle(e, log.sn)} 
+                                                    className="
+                                                        relative group
+                                                        material-icons-outlined rounded-full p-2 
+                                                        transition-all duration-200 ease-out
+                                                        hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50
+                                                        dark:hover:bg-gradient-to-r dark:hover:from-indigo-900/20 dark:hover:to-purple-900/20
+                                                        hover:shadow-md hover:scale-105
+                                                        active:scale-95
+                                                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+                                                    " 
+                                                    style={{ color: 'var(--fb-text-secondary)' }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.color = 'var(--fb-primary)';
+                                                        e.currentTarget.style.transform = 'rotate(90deg)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.color = 'var(--fb-text-secondary)';
+                                                        e.currentTarget.style.transform = 'rotate(0deg)';
+                                                    }}
+                                                >
+                                                    more_vert
+                                                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 group-hover:opacity-10 transition-opacity duration-200"></div>
+                                                </button>
                                             ) : (
                                                 <button onClick={() => handleDelete(log)} className="material-icons-outlined p-1 transition-colors" style={{ color: 'var(--fb-text-secondary)' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--fb-error)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--fb-text-secondary)'}>delete</button>
                                             )}
@@ -358,20 +383,62 @@ const MergeLogs: React.FC<PageProps> = ({ setModal, user }) => {
                     <FloatingPortal>
                         <div
                             ref={refs.setFloating}
-                            className="card w-56 z-50 p-2"
-                            style={floatingStyles}
+                            className="
+                                card w-80 z-50 p-3
+                                shadow-2xl ring-1 ring-black/10 dark:ring-white/10
+                                rounded-2xl overflow-hidden
+                                backdrop-blur-sm
+                                transition-all duration-200 ease-out
+                                transform scale-100
+                            "
+                            style={{
+                                ...floatingStyles,
+                                animation: 'fadeInScale 200ms cubic-bezier(0.4, 0, 0.2, 1)'
+                            }}
                         >
-                            <ul>
-                                <li><a href={log.fileUrl} target="_blank" rel="noopener noreferrer" onClick={closeDropdown} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-blue-500">open_in_new</span>Open</a></li>
-                                <li><button onClick={() => handleCopyLink(log.fileUrl!)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-green-500">content_copy</span>Copy Link</button></li>
-                                <li className="my-1 border-t border-inherit"></li>
-                                <li className="px-3 pt-2 pb-1 text-xs text-gray-400">Download As</li>
-                                {(log.type === 'Sheet to Slides' ? downloadFormats.slides : downloadFormats.docs).map(df => (
-                                    <li key={df.format}><button onClick={() => handleDownload(log.fileUrl!, df.format)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-gray-500">download</span>{df.label}</button></li>
-                                ))}
-                                <li className="my-1 border-t border-inherit"></li>
-                                <li><button onClick={() => handleDelete(log)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-error)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(228, 30, 63, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base">delete</span>Delete</button></li>
-                            </ul>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                    <a href={log.fileUrl} target="_blank" rel="noopener noreferrer" onClick={closeDropdown} className="
+                                        flex items-center gap-2 w-full px-3 py-2 text-left text-xs rounded-lg 
+                                        transition-all duration-200 ease-out group
+                                        hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-600 hover:text-white
+                                        hover:shadow-sm
+                                    " style={{ color: 'var(--fb-text-primary)' }}>
+                                        <span className="material-icons-outlined text-sm text-blue-500 group-hover:text-white transition-all duration-200 group-hover:scale-110">open_in_new</span>Open
+                                    </a>
+                                    <button onClick={() => handleCopyLink(log.fileUrl!)} className="
+                                        flex items-center gap-2 w-full px-3 py-2 text-left text-xs rounded-lg 
+                                        transition-all duration-200 ease-out group
+                                        hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-600 hover:text-white
+                                        hover:shadow-sm
+                                    " style={{ color: 'var(--fb-text-primary)' }}>
+                                        <span className="material-icons-outlined text-sm text-green-500 group-hover:text-white transition-all duration-200 group-hover:scale-110">content_copy</span>Copy Link
+                                    </button>
+                                    <button onClick={() => handleDelete(log)} className="
+                                        flex items-center gap-2 w-full px-3 py-2 text-left text-xs rounded-lg 
+                                        transition-all duration-200 ease-out group
+                                        hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 hover:text-white
+                                        hover:shadow-sm
+                                    " style={{ color: 'var(--fb-error)' }}>
+                                        <span className="material-icons-outlined text-sm group-hover:text-white transition-all duration-200 group-hover:scale-110">delete</span>Delete
+                                    </button>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="px-3 pt-2 pb-1 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 rounded-lg mb-1">Download As</div>
+                                    <div className="max-h-60 overflow-y-auto">
+                                        {(log.type === 'Sheet to Slides' ? downloadFormats.slides : downloadFormats.docs).map(df => (
+                                            <button key={df.format} onClick={() => handleDownload(log.fileUrl!, df.format)} className="
+                                                flex items-center gap-2 w-full px-3 py-2 text-left text-xs rounded-lg 
+                                                transition-all duration-200 ease-out group
+                                                hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-600 hover:text-white
+                                                hover:shadow-sm
+                                            " style={{ color: 'var(--fb-text-primary)' }}>
+                                                <span className="material-icons-outlined text-sm text-gray-500 group-hover:text-white transition-all duration-200 group-hover:scale-110">download</span>{df.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </FloatingPortal>
                 );
