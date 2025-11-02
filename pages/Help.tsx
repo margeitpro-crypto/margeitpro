@@ -18,6 +18,7 @@ const DocSection: React.FC<{ title: string; children: React.ReactNode; id: strin
 
 const Documentation: React.FC<PageProps> = () => {
     const sections = [
+        
         { id: 'introduction', label: 'Introduction' },
         { id: 'getting-started', label: 'Getting Started' },
         { id: 'how-to-merge', label: 'How to Merge' },
@@ -74,17 +75,22 @@ const Documentation: React.FC<PageProps> = () => {
                         <h3 className="text-lg font-semibold mb-3">Contents</h3>
                         <div className="flex flex-col space-y-1">
                             {sections.map(section => (
-                                <a
+                                <button
                                     key={section.id}
-                                    href={`#${section.id}`}
-                                    className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                                    onClick={() => {
+                                        const element = document.getElementById(section.id);
+                                        if (element) {
+                                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                        }
+                                    }}
+                                    className={`px-3 py-2 text-sm rounded-md transition-colors text-left ${
                                         activeSection === section.id
                                             ? 'bg-blue-100 dark:bg-slate-700 text-blue-700 dark:text-white font-semibold'
                                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
                                     }`}
                                 >
                                     {section.label}
-                                </a>
+                                </button>
                             ))}
                         </div>
                     </div>

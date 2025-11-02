@@ -3,7 +3,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { PageProps, AuditLog } from '../types';
 import Chart from '../components/Chart';
 import { ChartConfiguration } from 'chart.js';
-import { getAuditLogsData } from '../services/gasClient';
+import { getAuditLogsData, getAdminDashboardData } from '../services/gasClient';
 
 // Stat Card Component (reusable within this page)
 const StatCard: React.FC<{ title: string; value: string; icon: string; iconColor: string; }> = ({ title, value, icon, iconColor }) => (
@@ -25,25 +25,28 @@ const SystemAnalytics: React.FC<PageProps> = ({ theme }) => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
-    // Mock data for the charts
-    const mockAnalyticsData = {
-        apiCallsLast30Days: Array.from({ length: 30 }, () => Math.floor(Math.random() * (5000 - 1000 + 1) + 1000)),
-        mergeStatus: { success: 1254, failed: 89 },
-        userActivity: { admins: 450, users: 804 },
-    };
+    // State for real analytics data
+    const [analyticsData, setAnalyticsData] = useState<any>(null);
+    const [loadingAnalytics, setLoadingAnalytics] = useState(true);
 
     useEffect(() => {
-        const fetchLogs = async () => {
+        const fetchData = async () => {
             try {
-                const data = await getAuditLogsData({});
-                setLogs(data as AuditLog[]);
+                // Fetch audit logs
+                const auditData = await getAuditLogsData({});
+                setLogs(auditData as AuditLog[]);
+
+                // Fetch real analytics data
+                const analytics = await getAdminDashboardData();
+                setAnalyticsData(analytics);
             } catch (err) {
-                setError('Failed to load audit logs.');
+                setError('Failed to load data.');
             } finally {
                 setLoading(false);
+                setLoadingAnalytics(false);
             }
         };
-        fetchLogs();
+        fetchData();
     }, []);
 
     // Chart configurations
@@ -60,7 +63,7 @@ const SystemAnalytics: React.FC<PageProps> = ({ theme }) => {
                 labels: Array.from({ length: 30 }, (_, i) => new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
                 datasets: [{
                     label: 'API Calls',
-                    data: mockAnalyticsData.apiCallsLast30Days,
+                    data: analyticsData?.apiCallsLast30Days || Array.from({ length: 30 }, () => 0),
                     fill: true,
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     borderColor: '#3b82f6',
@@ -87,7 +90,7 @@ const SystemAnalytics: React.FC<PageProps> = ({ theme }) => {
             data: {
                 labels: ['Successful', 'Failed'],
                 datasets: [{
-                    data: [mockAnalyticsData.mergeStatus.success, mockAnalyticsData.mergeStatus.failed],
+                    data: analyticsData ? [analyticsData.mergeStatus.success, analyticsData.mergeStatus.failed] : [0, 0],
                     backgroundColor: ['#10b981', '#ef4444'],
                     borderColor: [isDarkMode ? '#0f172a' : '#ffffff'],
                     borderWidth: 4,
@@ -110,7 +113,7 @@ const SystemAnalytics: React.FC<PageProps> = ({ theme }) => {
                 labels: ['Admins', 'Users'],
                 datasets: [{
                     label: 'Merges Performed',
-                    data: [mockAnalyticsData.userActivity.admins, mockAnalyticsData.userActivity.users],
+                    data: analyticsData ? [analyticsData.userActivity.admins, analyticsData.userActivity.users] : [0, 0],
                     backgroundColor: ['#8b5cf6', '#3b82f6'],
                     borderRadius: 4,
                     barPercentage: 0.5
@@ -131,7 +134,7 @@ const SystemAnalytics: React.FC<PageProps> = ({ theme }) => {
         };
 
         return { apiUsageChartConfig, mergeStatusChartConfig, userActivityChartConfig };
-    }, [theme, mockAnalyticsData]);
+    }, [theme, analyticsData]);
 
     return (
         <div className="max-w-7xl mx-auto space-y-8">
@@ -144,10 +147,10 @@ const SystemAnalytics: React.FC<PageProps> = ({ theme }) => {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Total API Calls (24h)" value="15,482" icon="api" iconColor="text-blue-500" />
-                <StatCard title="Average Merge Time" value="12.5s" icon="timer" iconColor="text-green-500" />
-                <StatCard title="Error Rate (24h)" value="1.2%" icon="error_outline" iconColor="text-red-500" />
-                <StatCard title="Active Users Today" value="2,134" icon="groups" iconColor="text-purple-500" />
+                <StatCard title="Total API Calls (24h)" value={analyticsData ? (analyticsData.apiCallsLast30Days?.slice(-1)[0] || 0).toLocaleString() : "0"} icon="api" iconColor="text-blue-500" />
+                <StatCard title="Total Merges" value={analyticsData ? analyticsData.totalMerges.toLocaleString() : "0"} icon="merge" iconColor="text-green-500" />
+                <StatCard title="Error Rate (24h)" value={analyticsData ? `${analyticsData.totalMerges > 0 ? Math.round((analyticsData.mergeStatus.failed / analyticsData.totalMerges) * 100) : 0}%` : "0%"} icon="error_outline" iconColor="text-red-500" />
+                <StatCard title="Active Users" value={analyticsData ? analyticsData.totalUsers.toLocaleString() : "0"} icon="groups" iconColor="text-purple-500" />
             </div>
 
             <div className="card p-6">

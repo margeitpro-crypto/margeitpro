@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { PageProps, User, MergeLog } from '../types';
-import { getAdminDashboardData, getUsersData, addUser, updateUser, deleteUser, uploadFile } from '../services/gasClient';
+import { getAdminDashboardData, getUsersData, addUser, updateUserByAdmin, deleteUser, uploadFile } from '../services/gasClient';
 import { adminMenu, generalMenu } from '../components/Layout';
 import Chart from '../components/Chart';
 import { ChartConfiguration } from 'chart.js';
+import { TableSkeleton, CardSkeleton } from '../components/SkeletonLoader';
+import SearchFilter from '../components/SearchFilter';
+import BulkActions from '../components/BulkActions';
 
 const allPages = [...adminMenu.items, ...generalMenu.items];
 
@@ -13,6 +16,7 @@ interface DashboardData {
     activeSubscriptions: number;
     recentMerges: MergeLog[];
     totalRevenue?: number;
+    apiCallsLast30Days?: number[];
 }
 
 // Stat Card Component
@@ -37,7 +41,9 @@ const UserTable: React.FC<{
     handleEditUser: (user: User) => void;
     handleDeleteUser: (user: User) => void;
     planDetails: { [key in User['plan']]: { price: string; color: string } };
-}> = ({ users, loading, error, sort, handleSort, handleEditUser, handleDeleteUser, planDetails }) => {
+    selectedUsers: Set<string>;
+    onUserSelect: (userId: string, selected: boolean) => void;
+}> = ({ users, loading, error, sort, handleSort, handleEditUser, handleDeleteUser, planDetails, selectedUsers, onUserSelect }) => {
     const SortableHeader: React.FC<{ column: keyof User; label: string }> = ({ column, label }) => (
         <th className="py-3 px-4 font-semibold sortable-header cursor-pointer" onClick={() => handleSort(column)}>
             {label}
@@ -66,7 +72,16 @@ const UserTable: React.FC<{
             <table className="w-full text-left">
                 <thead className="border-b border-inherit text-gray-500 dark:text-gray-400 text-sm">
                     <tr>
-                        <th className="py-3 px-4 w-12 font-semibold"><input type="checkbox" className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" /></th>
+                        <th className="py-3 px-4 w-12 font-semibold">
+                            <input 
+                                type="checkbox" 
+                                checked={users.length > 0 && users.every(u => selectedUsers.has(u.id!))}
+                                onChange={(e) => {
+                                    users.forEach(u => onUserSelect(u.id!, e.target.checked));
+                                }}
+                                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" 
+                            />
+                        </th>
                         <SortableHeader column="name" label="User" />
                         <SortableHeader column="accessPage" label="Access Page" />
                         <SortableHeader column="plan" label="Plan" />
@@ -86,7 +101,14 @@ const UserTable: React.FC<{
                     ) : (
                         users.map(user => (
                             <tr key={user.id} className="border-b border-inherit last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-800">
-                                <td className="px-4 py-3"><input type="checkbox" className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" /></td>
+                                <td className="px-4 py-3">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={selectedUsers.has(user.id!)}
+                                        onChange={(e) => onUserSelect(user.id!, e.target.checked)}
+                                        className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" 
+                                    />
+                                </td>
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-3">
                                         <img src={getUserAvatar(user)} className="w-8 h-8 rounded-full object-cover" alt={user.name}/>
@@ -170,14 +192,12 @@ const UserForm: React.FC<{
     const [formData, setFormData] = useState<Partial<User>>({
         name: '', email: '', role: 'User', status: 'Active', accessPage: [], plan: 'Free', inactiveDate: '', profilePictureId: undefined, ...user,
     });
-    const [newProfilePicture, setNewProfilePicture] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const initialData = { name: '', email: '', role: 'User', status: 'Active', accessPage: [], plan: 'Free', inactiveDate: '', profilePictureId: undefined, profilePictureUrl: undefined, ...user };
         setFormData(initialData);
-        setNewProfilePicture(null);
+
         if (initialData.profilePictureUrl) {
             setImagePreview(initialData.profilePictureUrl);
         } else if (initialData.profilePictureId) {
@@ -187,13 +207,7 @@ const UserForm: React.FC<{
         }
     }, [user]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setNewProfilePicture(file);
-            setImagePreview(URL.createObjectURL(file));
-        }
-    };
+
 
     const handleAccessPageChange = (pageId: string, checked: boolean) => {
         const currentPages = Array.isArray(formData.accessPage) ? formData.accessPage : (formData.accessPage || '').split(',').map(p => p.trim()).filter(Boolean);
@@ -212,7 +226,7 @@ const UserForm: React.FC<{
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(formData, newProfilePicture);
+        onSave(formData, null);
     };
 
     return (
@@ -250,13 +264,10 @@ const UserForm: React.FC<{
                             <label className="block text-sm font-medium mb-2">Profile Picture</label>
                             <img
                                 src={imagePreview || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'New User')}&background=random`}
-                                className="w-32 h-32 rounded-full object-cover mx-auto mb-2 border-2 border-dashed border-gray-300 dark:border-gray-600"
+                                className="w-32 h-32 rounded-full object-cover mx-auto mb-2"
                                 alt="Profile"
                             />
-                            <button type="button" onClick={() => fileInputRef.current?.click()} className="btn btn-secondary text-sm">
-                                Upload Image
-                            </button>
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Gmail Profile Only</p>
                         </div>
                     </div>
                     <div className="mt-4"><h3 className="text-sm font-medium mb-2">Access Pages</h3>
@@ -280,7 +291,7 @@ const UserForm: React.FC<{
 };
 
 // Main Component
-const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal }) => {
+const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal, user }) => {
     const [dashboardData, setDashboardData] = useState<DashboardData>({
         totalUsers: 0,
         totalMerges: 0,
@@ -291,11 +302,13 @@ const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'overview' | 'users'>('overview');
-    const [filters, setFilters] = useState({ search: '', role: '', status: '' });
+    const [filters, setFilters] = useState({ search: '', role: '', status: '', plan: '' });
     const [sort, setSort] = useState<{ column: keyof User, direction: 'asc' | 'desc' }>({ column: 'joinDate', direction: 'desc' });
     const [pagination, setPagination] = useState({ currentPage: 1, rowsPerPage: 10 });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+    const [searchQuery, setSearchQuery] = useState('');
 
     const planDetails: { [key in User['plan']]: { price: string; color: string } } = {
         Free: { price: 'Free', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
@@ -372,13 +385,13 @@ const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal }) => {
             let finalUserData = { ...formData };
             if (newProfilePicture) {
                 const uploadResult = await uploadFile(newProfilePicture);
-                finalUserData.profilePictureId = uploadResult.id;
+                finalUserData.profilePictureUrl = uploadResult.url;
             }
 
             const userDataToSave = { ...finalUserData, accessPage: Array.isArray(finalUserData.accessPage) ? finalUserData.accessPage.join(',') : finalUserData.accessPage };
 
             if (editingUser && editingUser.id) { // Update
-                await updateUser(editingUser.id, userDataToSave);
+                await updateUserByAdmin(user, editingUser.id, userDataToSave);
             } else { // Add
                 await addUser(userDataToSave);
             }
@@ -388,6 +401,44 @@ const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal }) => {
         }
         setModal({ type: null, props: {} });
         handleCloseModal();
+    };
+
+    const exportUsers = (userIds: string[]) => {
+        const usersToExport = users.filter(u => userIds.includes(u.id!));
+        const csvContent = [
+            ['Name', 'Email', 'Role', 'Status', 'Plan', 'Join Date'].join(','),
+            ...usersToExport.map(u => [
+                u.name, u.email, u.role, u.status, u.plan, u.joinDate
+            ].join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `users_export_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleBulkDelete = () => {
+        setModal({
+            type: 'confirmation',
+            props: {
+                title: 'Delete Multiple Users',
+                message: `Are you sure you want to delete ${selectedUsers.size} selected users? This action cannot be undone.`,
+                onConfirm: async () => {
+                    try {
+                        await Promise.all(Array.from(selectedUsers).map(userId => deleteUser(userId as string)));
+                        await fetchUsersData();
+                        setSelectedUsers(new Set());
+                    } catch (e) {
+                        alert(`Error deleting users: ${(e as Error).message}`);
+                    }
+                    setModal({ type: null, props: {} });
+                }
+            }
+        });
     };
 
     const handleDeleteUser = (user: User) => {
@@ -413,11 +464,15 @@ const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal }) => {
 
     const filteredAndSortedUsers = useMemo(() => {
         return users
-            .filter(user =>
-                (user.name.toLowerCase().includes(filters.search.toLowerCase()) || user.email.toLowerCase().includes(filters.search.toLowerCase())) &&
-                (filters.role === '' || user.role === filters.role) &&
-                (filters.status === '' || user.status === filters.status)
-            )
+            .filter(user => {
+                const matchesSearch = searchQuery === '' || 
+                    user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                    user.email.toLowerCase().includes(searchQuery.toLowerCase());
+                const matchesRole = filters.role === '' || user.role === filters.role;
+                const matchesStatus = filters.status === '' || user.status === filters.status;
+                const matchesPlan = !filters.plan || user.plan === filters.plan;
+                return matchesSearch && matchesRole && matchesStatus && matchesPlan;
+            })
             .sort((a, b) => {
                 const valA = a[sort.column];
                 const valB = b[sort.column];
@@ -425,7 +480,7 @@ const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal }) => {
                 if (valA > valB) return sort.direction === 'asc' ? 1 : -1;
                 return 0;
             });
-    }, [users, filters, sort]);
+    }, [users, searchQuery, filters, sort]);
 
     const paginatedUsers = useMemo(() => {
         const startIndex = (pagination.currentPage - 1) * pagination.rowsPerPage;
@@ -490,6 +545,10 @@ const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal }) => {
 
             {/* Combined Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {loading ? (
+                    Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                    <>
                 <StatCard title="Total Users" value={userStats.totalUsers.toString()} change={`${userStats.activeUsers} active`} icon="group" iconColor="text-blue-500 dark:text-blue-400" />
                 <StatCard title="Active Users" value={userStats.activeUsers.toString()} change={`${Math.round((userStats.activeUsers / userStats.totalUsers) * 100)}% active`} icon="person_check" iconColor="text-green-500 dark:text-green-400" />
                 <StatCard title="Inactive Users" value={userStats.inactiveUsers.toString()} change={`${Math.round((userStats.inactiveUsers / userStats.totalUsers) * 100)}% inactive`} icon="person_off" iconColor="text-yellow-500 dark:text-yellow-400" />
@@ -498,6 +557,8 @@ const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal }) => {
                 <StatCard title="Total Merges" value={dashboardData.totalMerges.toLocaleString()} change="All time" icon="merge_type" iconColor="text-indigo-500 dark:text-indigo-400" />
                 <StatCard title="System Health" value="99.9%" change="All systems operational" icon="shield" iconColor="text-purple-500 dark:text-purple-400" />
                 <StatCard title="API Calls (24h)" value={(dashboardData.apiCallsLast30Days?.slice(-1)[0] || 0).toLocaleString()} change="Last 24 hours" icon="api" iconColor="text-teal-500 dark:text-teal-400" />
+                    </>
+                )}
             </div>
 
             {/* Tab Navigation */}
@@ -597,8 +658,57 @@ const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal }) => {
                                     </button>
                                 </div>
                             </div>
-                            <UserFilters filters={filters} setFilters={setFilters} />
-                            <UserTable users={paginatedUsers} loading={loading} error={error} sort={sort} handleSort={handleSort} handleEditUser={handleEditUser} handleDeleteUser={handleDeleteUser} planDetails={planDetails} />
+                            <SearchFilter
+                                onSearch={setSearchQuery}
+                                onFilter={(newFilters) => setFilters({ ...filters, ...newFilters })}
+                                filters={[
+                                    { key: 'role', label: 'Role', options: ['Admin', 'User'] },
+                                    { key: 'status', label: 'Status', options: ['Active', 'Inactive'] },
+                                    { key: 'plan', label: 'Plan', options: ['Free', 'Pro', 'Enterprise'] }
+                                ]}
+                                placeholder="Search users by name or email..."
+                            />
+                            <BulkActions
+                                selectedCount={selectedUsers.size}
+                                totalCount={filteredAndSortedUsers.length}
+                                onSelectAll={() => setSelectedUsers(new Set(filteredAndSortedUsers.map(u => u.id!)))}
+                                onDeselectAll={() => setSelectedUsers(new Set())}
+                                actions={[
+                                    {
+                                        label: 'Export Selected',
+                                        icon: 'download',
+                                        onClick: () => exportUsers(Array.from(selectedUsers)),
+                                        color: 'secondary'
+                                    },
+                                    {
+                                        label: 'Delete Selected',
+                                        icon: 'delete',
+                                        onClick: () => handleBulkDelete(),
+                                        color: 'danger'
+                                    }
+                                ]}
+                            />
+                            {loading ? (
+                                <TableSkeleton rows={pagination.rowsPerPage} cols={8} />
+                            ) : (
+                                <UserTable 
+                                    users={paginatedUsers} 
+                                    loading={loading} 
+                                    error={error} 
+                                    sort={sort} 
+                                    handleSort={handleSort} 
+                                    handleEditUser={handleEditUser} 
+                                    handleDeleteUser={handleDeleteUser} 
+                                    planDetails={planDetails}
+                                    selectedUsers={selectedUsers}
+                                    onUserSelect={(userId, selected) => {
+                                        const newSelected = new Set(selectedUsers);
+                                        if (selected) newSelected.add(userId);
+                                        else newSelected.delete(userId);
+                                        setSelectedUsers(newSelected);
+                                    }}
+                                />
+                            )}
                             <UserPagination pagination={pagination} setPagination={setPagination} totalUsers={filteredAndSortedUsers.length} totalPages={totalPages} />
                         </div>
                     )}

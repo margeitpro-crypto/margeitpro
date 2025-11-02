@@ -4,12 +4,16 @@ import { PageProps, MergeLog, User } from '../types';
 import { getUserDashboardData } from '../services/gasClient';
 import Chart from '../components/Chart';
 import { ChartConfiguration } from 'chart.js';
+import { CardSkeleton, TableSkeleton } from '../components/SkeletonLoader';
 
 interface DashboardData {
     totalUserMerges: number;
     docsGenerated: number;
     slidesGenerated: number;
     recentUserMerges: MergeLog[];
+    mergeActivityLast7Days?: number[];
+    successRate?: number;
+    templatesUsed?: number;
 }
 
 const StatCard: React.FC<{ title: string; value: string; change: string; icon: string; iconColor: string; }> = ({ title, value, change, icon, iconColor }) => (
@@ -18,7 +22,7 @@ const StatCard: React.FC<{ title: string; value: string; change: string; icon: s
             <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
             <span className={`material-icons-outlined ${iconColor}`}>{icon}</span>
         </div>
-        <p className="text-3xl font-bold mt-2">{value}</p>
+        <p className={`${title === 'Templates & Success' ? 'text-2xl' : 'text-3xl'} font-bold mt-2`}>{value}</p>
         <p className="text-xs text-green-500 font-medium mt-1">{change}</p>
     </div>
 );
@@ -30,12 +34,24 @@ const UserDashboard: React.FC<PageProps> = ({ theme, user }) => {
     useEffect(() => {
         const fetchData = async () => {
             if (!user?.email) return;
+            console.log('UserDashboard: Fetching data for user:', user.email);
             setLoading(true);
             try {
                 const data = await getUserDashboardData(user.email) as DashboardData;
+                console.log('UserDashboard: Received data:', data);
                 setDashboardData(data);
             } catch (err) {
-                console.error(err);
+                console.error('UserDashboard: Error fetching data:', err);
+                // Set fallback data for new users or when there are permission issues
+                setDashboardData({
+                    totalUserMerges: 0,
+                    docsGenerated: 0,
+                    slidesGenerated: 0,
+                    recentUserMerges: [],
+                    mergeActivityLast7Days: [0, 0, 0, 0, 0, 0, 0],
+                    successRate: 0,
+                    templatesUsed: 0
+                });
             } finally {
                 setLoading(false);
             }
@@ -50,12 +66,12 @@ const UserDashboard: React.FC<PageProps> = ({ theme, user }) => {
         return {
             type: 'bar',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                datasets: [{ label: 'Merges', data: [120, 80, 190, 50, 150, 180], backgroundColor: '#4F46E5', borderWidth: 0, borderRadius: 4, barPercentage: 0.6 }]
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{ label: 'Merges', data: dashboardData?.mergeActivityLast7Days || [0, 0, 0, 0, 0, 0, 0], backgroundColor: '#4F46E5', borderWidth: 0, borderRadius: 4, barPercentage: 0.6 }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: tickColor } } } }
         };
-    }, [theme]);
+    }, [theme, dashboardData]);
     
     return (
         <div className="max-w-7xl mx-auto">
@@ -67,10 +83,16 @@ const UserDashboard: React.FC<PageProps> = ({ theme, user }) => {
                 <p className="text-gray-500 dark:text-gray-400 mt-1 text-base">Welcome back! Here's a quick overview of your activity.</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatCard title="Your Total Merges" value={dashboardData?.totalUserMerges.toLocaleString() ?? '...'} change="+120 this week" icon="analytics" iconColor="text-blue-500" />
-                <StatCard title="Docs Generated" value={dashboardData?.docsGenerated.toLocaleString() ?? '...'} change="+15.2% from last week" icon="article" iconColor="text-green-500" />
-                <StatCard title="Slides Generated" value={dashboardData?.slidesGenerated.toLocaleString() ?? '...'} change="+12.1% from last week" icon="slideshow" iconColor="text-yellow-500" />
-                <StatCard title="Templates & Success" value="42 Used / 98.5%" change="+5 new, +1.2% up" icon="category" iconColor="text-purple-500" />
+                {loading ? (
+                    Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                    <>
+                        <StatCard title="Your Total Merges" value={dashboardData?.totalUserMerges.toLocaleString() ?? '...'} change="+120 this week" icon="analytics" iconColor="text-blue-500" />
+                        <StatCard title="Docs Generated" value={dashboardData?.docsGenerated.toLocaleString() ?? '...'} change="+15.2% from last week" icon="article" iconColor="text-green-500" />
+                        <StatCard title="Slides Generated" value={dashboardData?.slidesGenerated.toLocaleString() ?? '...'} change="+12.1% from last week" icon="slideshow" iconColor="text-yellow-500" />
+                        <StatCard title="Templates & Success" value={`${dashboardData?.templatesUsed ?? '...'} Used / ${dashboardData?.successRate ?? '...'}%`} change="+5 new, +1.2% up" icon="category" iconColor="text-purple-500" />
+                    </>
+                )}
             </div>
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 card p-6">
@@ -89,16 +111,16 @@ const UserDashboard: React.FC<PageProps> = ({ theme, user }) => {
                             </thead>
                             <tbody>
                                 {loading ? (
-                                    <tr><td colSpan={5} className="text-center py-8"><div className="spinner mx-auto"></div></td></tr>
+                                    <TableSkeleton rows={5} cols={5} />
                                 ) : !dashboardData || dashboardData.recentUserMerges.length === 0 ? (
                                      <tr><td colSpan={5} className="text-center py-8 text-gray-500">No recent merges found.</td></tr>
                                 ) : (
                                     dashboardData.recentUserMerges.map(item => (
-                                        <tr key={item.sn} className="border-b border-inherit last:border-b-0">
+                                        <tr key={item.sn} className="border-b border-inherit last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                                             <td className="px-4 py-4 text-gray-500 dark:text-gray-400">{item.sn}</td>
                                             <td className="px-4 py-4 font-medium">{item.fileName}</td>
                                             <td className="px-4 py-4 text-gray-500 dark:text-gray-400">{item.type}</td>
-                                            <td className="px-4 py-4"><span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${item.status === 'Success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>{item.status}</span></td>
+                                            <td className="px-4 py-4"><span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${item.status === 'Success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 success-animation' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>{item.status}</span></td>
                                             <td className="px-4 py-4 text-gray-500 dark:text-gray-400">{item.date}</td>
                                         </tr>
                                     ))

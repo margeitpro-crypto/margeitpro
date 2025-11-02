@@ -6,7 +6,7 @@ import {
     getBillingPlansData, addBillingPlan, updateBillingPlan, deleteBillingPlan,
     sendNotification, getNotificationsData, addNotification, updateNotification, deleteNotification,
     getUsersData,
-    updateUser,
+    updateUserByAdmin,
     uploadFile,
     getPaymentHistoryData,
 } from '../services/gasClient';
@@ -19,79 +19,211 @@ const allPages = [...adminMenu.items, ...generalMenu.items];
 // --- Template Management ---
 
 const TemplateForm: React.FC<{ template: Partial<Template> | null; onSave: (data: Partial<Template>) => void; onCancel: () => void; isSubmitting: boolean; }> = ({ template, onSave, onCancel, isSubmitting }) => {
-    const [formData, setFormData] = useState<Partial<Template>>({ name: '', id: '', type: 'Slides', plan: 'Free', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template });
+    const [formData, setFormData] = useState<Partial<Template>>({ name: '', id: '', type: 'Slides' as 'Slides' | 'Docs' | 'Sheet', plan: 'Free' as 'Free' | 'Pro', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template });
+    const [errors, setErrors] = useState<{[key: string]: string}>({});
 
     useEffect(() => {
-        const initialData = { name: '', id: '', type: 'Slides', plan: 'Free', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template };
+        const initialData = { name: '', id: '', type: 'Slides' as 'Slides' | 'Docs' | 'Sheet', plan: 'Free' as 'Free' | 'Pro', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template };
         setFormData(initialData);
+        setErrors({});
     }, [template]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors: {[key: string]: string} = {};
+        if (!formData.name?.trim()) newErrors.name = 'Template name is required';
+        if (!formData.id?.trim()) newErrors.id = 'Template ID is required';
+        if (!formData.description?.trim()) newErrors.description = 'Description is required';
+        if (formData.imageUrl && !formData.imageUrl.match(/^https?:\/\/.+/)) newErrors.imageUrl = 'Invalid URL format';
+        if (formData.imageUrl2 && !formData.imageUrl2.match(/^https?:\/\/.+/)) newErrors.imageUrl2 = 'Invalid URL format';
+        if (formData.sheetUrl && !formData.sheetUrl.match(/^https?:\/\/.+/)) newErrors.sheetUrl = 'Invalid URL format';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.id.trim()) {
-            alert('Please enter a valid Template ID');
-            return;
-        }
+        if (!validateForm()) return;
         onSave(formData);
     };
 
+    const handleReset = () => {
+        setFormData({ name: '', id: '', type: 'Slides' as 'Slides' | 'Docs' | 'Sheet', plan: 'Free' as 'Free' | 'Pro', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template });
+        setErrors({});
+    };
+
     return (
-        <div className="card w-full max-w-2xl">
+        <div className="card w-full max-w-lg">
             <form onSubmit={handleSubmit}>
                 <div className="p-6">
                     <h2 className="text-xl font-bold mb-4">{template?.id ? 'Edit Template' : 'Add New Template'}</h2>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label className="block text-sm font-medium mb-1">Template Name</label><input type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full p-2" required /></div>
-                        <div><label className="block text-sm font-medium mb-1">Template ID</label><input type="text" name="id" value={formData.id} onChange={handleInputChange} className="w-full p-2" required disabled={!!template?.id} /></div>
-                        <div><label className="block text-sm font-medium mb-1">Type</label><select name="type" value={formData.type} onChange={handleInputChange} className="w-full p-2"><option>Slides</option><option>Docs</option><option>Sheet</option></select></div>
-                        <div><label className="block text-sm font-medium mb-1">Plan</label><select name="plan" value={formData.plan} onChange={handleInputChange} className="w-full p-2"><option>Free</option><option>Pro</option></select></div>
-                        <div className="md:col-span-2"><label className="block text-sm font-medium mb-1">Description</label><textarea name="description" value={formData.description} onChange={handleInputChange} className="w-full p-2 h-24" required /></div>
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1">Image URL</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="template-name" className="block text-sm font-medium mb-1">Template Name *</label>
                             <input
+                                id="template-name"
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                className={`w-full p-2 border rounded ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                required
+                                aria-describedby={errors.name ? "name-error" : undefined}
+                            />
+                            {errors.name && <p id="name-error" className="text-xs text-red-500 mt-1">{errors.name}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="template-id" className="block text-sm font-medium mb-1">Template ID *</label>
+                            <input
+                                id="template-id"
+                                type="text"
+                                name="id"
+                                value={formData.id}
+                                onChange={handleInputChange}
+                                className={`w-full p-2 border rounded ${errors.id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                required
+                                disabled={!!template?.id}
+                                aria-describedby={errors.id ? "id-error" : undefined}
+                            />
+                            {errors.id && <p id="id-error" className="text-xs text-red-500 mt-1">{errors.id}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="template-type" className="block text-sm font-medium mb-1">Type</label>
+                            <select
+                                id="template-type"
+                                name="type"
+                                value={formData.type}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
+                            >
+                                <option>Slides</option>
+                                <option>Docs</option>
+                                <option>Sheet</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="template-plan" className="block text-sm font-medium mb-1">Plan</label>
+                            <select
+                                id="template-plan"
+                                name="plan"
+                                value={formData.plan}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
+                            >
+                                <option>Free</option>
+                                <option>Pro</option>
+                            </select>
+                        </div>
+                        <div className="md:col-span-2">
+                            <label htmlFor="template-description" className="block text-sm font-medium mb-1">Description *</label>
+                            <textarea
+                                id="template-description"
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                className={`w-full p-2 border rounded h-20 resize-none ${errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                required
+                                aria-describedby={errors.description ? "description-error" : undefined}
+                            />
+                            {errors.description && <p id="description-error" className="text-xs text-red-500 mt-1">{errors.description}</p>}
+                        </div>
+                        <div className="md:col-span-2">
+                            <label htmlFor="template-image-url" className="block text-sm font-medium mb-1">Image URL</label>
+                            <input
+                                id="template-image-url"
                                 type="url"
                                 name="imageUrl"
                                 value={formData.imageUrl}
                                 onChange={handleInputChange}
                                 placeholder="https://drive.google.com/file/d/.../view or direct image URL"
-                                className="w-full p-2"
+                                className={`w-full p-2 border rounded ${errors.imageUrl ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                aria-describedby={errors.imageUrl ? "image-url-error" : "image-url-help"}
                             />
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Google Drive sharing links will be automatically converted for preview</p>
+                            {errors.imageUrl ? (
+                                <p id="image-url-error" className="text-xs text-red-500 mt-1">{errors.imageUrl}</p>
+                            ) : (
+                                <p id="image-url-help" className="text-xs text-gray-500 dark:text-gray-400 mt-1">Google Drive sharing links will be automatically converted for preview</p>
+                            )}
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1">Second Image URL (Optional)</label>
+                            <label htmlFor="template-image-url2" className="block text-sm font-medium mb-1">Second Image URL (Optional)</label>
                             <input
+                                id="template-image-url2"
                                 type="url"
                                 name="imageUrl2"
                                 value={formData.imageUrl2}
                                 onChange={handleInputChange}
                                 placeholder="https://drive.google.com/file/d/.../view or direct image URL"
-                                className="w-full p-2"
+                                className={`w-full p-2 border rounded ${errors.imageUrl2 ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                aria-describedby={errors.imageUrl2 ? "image-url2-error" : "image-url2-help"}
                             />
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional second image for template preview</p>
+                            {errors.imageUrl2 ? (
+                                <p id="image-url2-error" className="text-xs text-red-500 mt-1">{errors.imageUrl2}</p>
+                            ) : (
+                                <p id="image-url2-help" className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional second image for template preview</p>
+                            )}
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1">Google Sheet URL (Optional)</label>
+                            <label htmlFor="template-sheet-url" className="block text-sm font-medium mb-1">Google Sheet URL (Optional)</label>
                             <input
+                                id="template-sheet-url"
                                 type="url"
                                 name="sheetUrl"
                                 value={formData.sheetUrl}
                                 onChange={handleInputChange}
                                 placeholder="https://docs.google.com/spreadsheets/d/.../edit"
-                                className="w-full p-2"
+                                className={`w-full p-2 border rounded ${errors.sheetUrl ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                aria-describedby={errors.sheetUrl ? "sheet-url-error" : "sheet-url-help"}
                             />
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional Google Sheet URL for data source</p>
+                            {errors.sheetUrl ? (
+                                <p id="sheet-url-error" className="text-xs text-red-500 mt-1">{errors.sheetUrl}</p>
+                            ) : (
+                                <p id="sheet-url-help" className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional Google Sheet URL for data source</p>
+                            )}
                         </div>
                     </div>
                 </div>
-                <div className="bg-gray-50 dark:bg-slate-800 p-4 flex justify-end gap-3 rounded-b-xl">
-                    <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
-                    <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Template'}</button>
+                <div className="bg-gray-50 dark:bg-slate-800 p-4 flex justify-between items-center rounded-b-xl">
+                    <button
+                        type="button"
+                        onClick={handleReset}
+                        className="btn btn-secondary"
+                        disabled={isSubmitting}
+                        title="Reset form to initial values"
+                    >
+                        Reset
+                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="btn btn-secondary"
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <div className="spinner w-4 h-4 mr-2"></div>
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save Template'
+                            )}
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -171,32 +303,61 @@ const TemplateManagement: React.FC<PageProps> = ({ setModal }) => {
                 <div><h2 className="text-lg font-bold">Manage Templates</h2><p className="text-sm text-gray-500 dark:text-gray-400">Add, edit, or delete templates.</p></div>
                 <button onClick={handleAdd} className="btn btn-primary"><span className="material-icons-outlined">add</span> New Template</button>
             </div>
-            <div className="overflow-x-auto"><table className="w-full text-left">
-                <thead className="border-b border-inherit text-gray-500 dark:text-gray-400 text-sm">
-                    <tr>
-                        <th className="py-2 px-3 font-semibold">SN</th>
-                        <th className="py-2 px-3 font-semibold">Name</th>
-                        <th className="py-2 px-3 font-semibold">Type</th>
-                        <th className="py-2 px-3 font-semibold">Plan</th>
-                        <th className="py-2 px-3 font-semibold text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="text-sm">
-                    {loading ? (<tr><td colSpan={5} className="text-center py-6"><div className="spinner mx-auto"></div></td></tr>)
-                    : templates.map((t, index) => (
-                        <tr key={t.id} className="border-b border-inherit last:border-b-0">
-                            <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{index + 1}</td>
-                            <td className="py-3 px-3 font-medium">{t.name}</td>
-                            <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{t.type}</td>
-                            <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{t.plan}</td>
-                            <td className="py-3 px-3 text-right">
-                                <button onClick={() => handleEdit(t)} className="material-icons-outlined p-1">edit</button>
-                                <button onClick={() => handleDelete(t)} className="material-icons-outlined p-1 text-red-500">delete</button>
-                            </td>
+            <div className="overflow-x-auto">
+                <table className="w-full text-left" role="table" aria-label="Templates management table">
+                    <thead className="border-b border-inherit text-gray-500 dark:text-gray-400 text-sm">
+                        <tr>
+                            <th className="py-2 px-3 font-semibold" scope="col">SN</th>
+                            <th className="py-2 px-3 font-semibold" scope="col">Name</th>
+                            <th className="py-2 px-3 font-semibold" scope="col">Type</th>
+                            <th className="py-2 px-3 font-semibold" scope="col">Plan</th>
+                            <th className="py-2 px-3 font-semibold text-right" scope="col">Actions</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table></div>
+                    </thead>
+                    <tbody className="text-sm">
+                        {loading ? (
+                            <tr>
+                                <td colSpan={5} className="text-center py-6">
+                                    <div className="spinner mx-auto" aria-label="Loading templates"></div>
+                                </td>
+                            </tr>
+                        ) : templates.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} className="text-center py-6 text-gray-500 dark:text-gray-400">
+                                    No templates found
+                                </td>
+                            </tr>
+                        ) : (
+                            templates.map((t, index) => (
+                                <tr key={t.id} className="border-b border-inherit last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                                    <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{index + 1}</td>
+                                    <td className="py-3 px-3 font-medium">{t.name}</td>
+                                    <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{t.type}</td>
+                                    <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{t.plan}</td>
+                                    <td className="py-3 px-3 text-right">
+                                        <button
+                                            onClick={() => handleEdit(t)}
+                                            className="material-icons-outlined p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded"
+                                            title="Edit template"
+                                            aria-label={`Edit ${t.name}`}
+                                        >
+                                            edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(t)}
+                                            className="material-icons-outlined p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                            title="Delete template"
+                                            aria-label={`Delete ${t.name}`}
+                                        >
+                                            delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
             {isModalOpen && (<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                 <div className="fixed inset-0" onClick={handleCloseModal}></div><div className="relative z-10"><TemplateForm template={editingTemplate} onSave={handleSave} onCancel={handleCloseModal} isSubmitting={isSubmitting} /></div>
             </div>)}
@@ -210,25 +371,51 @@ const TemplateManagement: React.FC<PageProps> = ({ setModal }) => {
 const BillingForm: React.FC<{ plan: Partial<BillingPlan> | null; onSave: (data: Partial<BillingPlan>) => void; onCancel: () => void; isSubmitting: boolean; }> = ({ plan, onSave, onCancel, isSubmitting }) => {
     const [formData, setFormData] = useState(() => {
         const { features, ...rest } = plan || {};
-        return { name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, ...rest, features: Array.isArray(features) ? features.join('\n') : '' };
+        return { name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, currency: 'USD', order: 0, ...rest, features: Array.isArray(features) ? features.join('\n') : '' };
     });
+    const [errors, setErrors] = useState<{[key: string]: string}>({});
 
     useEffect(() => {
         const { features, ...rest } = plan || {};
-        setFormData({ name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, ...rest, features: Array.isArray(features) ? features.join('\n') : '' });
+        setFormData({ name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, currency: 'USD', order: 0, ...rest, features: Array.isArray(features) ? features.join('\n') : '' });
+        setErrors({});
     }, [plan]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(p => ({ ...p, [name]: value }));
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
     };
 
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(p => ({ ...p, [e.target.name]: e.target.checked }));
     };
 
+    const validateForm = () => {
+        const newErrors: {[key: string]: string} = {};
+        if (!formData.name?.trim()) newErrors.name = 'Plan name is required';
+        if (!formData.price?.toString().trim()) newErrors.price = 'Price is required';
+        if (!formData.buttonText?.trim()) newErrors.buttonText = 'Button text is required';
+        if (!formData.features?.trim()) newErrors.features = 'At least one feature is required';
+        if (formData.order && (isNaN(Number(formData.order)) || Number(formData.order) < 1)) {
+            newErrors.order = 'Order must be a positive number';
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validateForm()) return;
         onSave({ ...formData, features: formData.features.split('\n').filter(f => f.trim()) });
+    };
+
+    const handleReset = () => {
+        const { features, ...rest } = plan || {};
+        setFormData({ name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, currency: 'USD', order: 0, ...rest, features: Array.isArray(features) ? features.join('\n') : '' });
+        setErrors({});
     };
 
     return (
@@ -237,26 +424,161 @@ const BillingForm: React.FC<{ plan: Partial<BillingPlan> | null; onSave: (data: 
                 <div className="p-6">
                     <h2 className="text-xl font-bold mb-4">{plan?.id ? 'Edit Plan' : 'Add New Plan'}</h2>
                     <div className="space-y-4">
-                        <div><label className="block text-sm font-medium mb-1">Plan Name</label><input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g., Pro Plan" className="w-full p-2" required /></div>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div><label className="block text-sm font-medium mb-1">Price</label><input type="text" name="price" value={formData.price as string} onChange={handleInputChange} placeholder="e.g., 15 or 'Contact Us'" className="w-full p-2" required /></div>
-                            <div><label className="block text-sm font-medium mb-1">Currency</label><select name="currency" value={formData.currency || 'USD'} onChange={handleInputChange} className="w-full p-2"><option value="USD">USD ($)</option><option value="NPR">NPR (रू)</option><option value="INR">INR (₹)</option></select></div>
-                            <div><label className="block text-sm font-medium mb-1">Price Period</label><input type="text" name="pricePeriod" value={formData.pricePeriod} onChange={handleInputChange} placeholder="e.g., / mo" className="w-full p-2" /></div>
+                        <div>
+                            <label htmlFor="billing-name" className="block text-sm font-medium mb-1">Plan Name *</label>
+                            <input
+                                id="billing-name"
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                placeholder="e.g., Pro Plan"
+                                className={`w-full p-2 border rounded ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                required
+                                aria-describedby={errors.name ? "billing-name-error" : undefined}
+                            />
+                            {errors.name && <p id="billing-name-error" className="text-xs text-red-500 mt-1">{errors.name}</p>}
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div><label className="block text-sm font-medium mb-1">Button Text</label><input type="text" name="buttonText" value={formData.buttonText} onChange={handleInputChange} placeholder="e.g., Get Started" className="w-full p-2" required /></div>
-                            <div><label className="block text-sm font-medium mb-1">Display Order</label><input type="number" name="order" value={formData.order || ''} onChange={handleInputChange} placeholder="e.g., 1" className="w-full p-2" min="1" /></div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label htmlFor="billing-price" className="block text-sm font-medium mb-1">Price *</label>
+                                <input
+                                    id="billing-price"
+                                    type="text"
+                                    name="price"
+                                    value={formData.price as string}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g., 15 or 'Contact Us'"
+                                    className={`w-full p-2 border rounded ${errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                    required
+                                    aria-describedby={errors.price ? "billing-price-error" : undefined}
+                                />
+                                {errors.price && <p id="billing-price-error" className="text-xs text-red-500 mt-1">{errors.price}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="billing-currency" className="block text-sm font-medium mb-1">Currency</label>
+                                <select
+                                    id="billing-currency"
+                                    name="currency"
+                                    value={formData.currency || 'USD'}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
+                                >
+                                    <option value="USD">USD ($)</option>
+                                    <option value="NPR">NPR (रू)</option>
+                                    <option value="INR">INR (₹)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label htmlFor="billing-price-period" className="block text-sm font-medium mb-1">Price Period</label>
+                                <input
+                                    id="billing-price-period"
+                                    type="text"
+                                    name="pricePeriod"
+                                    value={formData.pricePeriod}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g., / mo"
+                                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
+                                />
+                            </div>
                         </div>
-                        <div><label className="block text-sm font-medium mb-1">Features (one per line)</label><textarea name="features" value={formData.features} onChange={handleInputChange} placeholder="- Unlimited merges&#10;- Priority support" className="w-full p-2 h-24" required></textarea></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="billing-button-text" className="block text-sm font-medium mb-1">Button Text *</label>
+                                <input
+                                    id="billing-button-text"
+                                    type="text"
+                                    name="buttonText"
+                                    value={formData.buttonText}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g., Get Started"
+                                    className={`w-full p-2 border rounded ${errors.buttonText ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                    required
+                                    aria-describedby={errors.buttonText ? "billing-button-text-error" : undefined}
+                                />
+                                {errors.buttonText && <p id="billing-button-text-error" className="text-xs text-red-500 mt-1">{errors.buttonText}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="billing-order" className="block text-sm font-medium mb-1">Display Order</label>
+                                <input
+                                    id="billing-order"
+                                    type="number"
+                                    name="order"
+                                    value={formData.order || ''}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g., 1"
+                                    className={`w-full p-2 border rounded ${errors.order ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                    min="1"
+                                    aria-describedby={errors.order ? "billing-order-error" : "billing-order-help"}
+                                />
+                                {errors.order ? (
+                                    <p id="billing-order-error" className="text-xs text-red-500 mt-1">{errors.order}</p>
+                                ) : (
+                                    <p id="billing-order-help" className="text-xs text-gray-500 dark:text-gray-400 mt-1">Lower numbers appear first on homepage</p>
+                                )}
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="billing-features" className="block text-sm font-medium mb-1">Features (one per line) *</label>
+                            <textarea
+                                id="billing-features"
+                                name="features"
+                                value={formData.features}
+                                onChange={handleInputChange}
+                                placeholder="- Unlimited merges&#10;- Priority support"
+                                className={`w-full p-2 border rounded h-24 resize-none ${errors.features ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                required
+                                aria-describedby={errors.features ? "billing-features-error" : undefined}
+                            />
+                            {errors.features && <p id="billing-features-error" className="text-xs text-red-500 mt-1">{errors.features}</p>}
+                        </div>
                         <div className="flex items-center gap-2">
-                            <input type="checkbox" name="isActive" checked={formData.isActive} onChange={handleCheckboxChange} className="h-4 w-4" />
-                            <label className="text-sm font-medium">Active (Show on homepage)</label>
+                            <input
+                                id="billing-is-active"
+                                type="checkbox"
+                                name="isActive"
+                                checked={formData.isActive}
+                                onChange={handleCheckboxChange}
+                                className="h-4 w-4"
+                            />
+                            <label htmlFor="billing-is-active" className="text-sm font-medium">Active (Show on homepage)</label>
                         </div>
                     </div>
                 </div>
-                <div className="bg-gray-50 dark:bg-slate-800 p-4 flex justify-end gap-3 rounded-b-xl">
-                    <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
-                    <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Plan'}</button>
+                <div className="bg-gray-50 dark:bg-slate-800 p-4 flex justify-between items-center rounded-b-xl">
+                    <button
+                        type="button"
+                        onClick={handleReset}
+                        className="btn btn-secondary"
+                        disabled={isSubmitting}
+                        title="Reset form to initial values"
+                    >
+                        Reset
+                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="btn btn-secondary"
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <div className="spinner w-4 h-4 mr-2"></div>
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save Plan'
+                            )}
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -334,51 +656,82 @@ const BillingManagement: React.FC<PageProps> = ({ setModal }) => {
                 <div><h2 className="text-lg font-bold">Manage Billing Plans</h2><p className="text-sm text-gray-500 dark:text-gray-400">Add, edit, or delete subscription plans.</p></div>
                 <button onClick={handleAdd} className="btn btn-primary"><span className="material-icons-outlined">add</span> New Plan</button>
             </div>
-            <div className="overflow-x-auto"><table className="w-full text-left">
-                <thead className="border-b border-inherit text-gray-500 dark:text-gray-400 text-sm">
-                    <tr>
-                        <th className="py-2 px-3 font-semibold">SN</th>
-                        <th className="py-2 px-3 font-semibold">Order</th>
-                        <th className="py-2 px-3 font-semibold">Name</th>
-                        <th className="py-2 px-3 font-semibold">Price</th>
-                        <th className="py-2 px-3 font-semibold">Status</th>
-                        <th className="py-2 px-3 font-semibold text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="text-sm">
-                    {loading ? (<tr><td colSpan={6} className="text-center py-6"><div className="spinner mx-auto"></div></td></tr>)
-                    : plans.map((p, index) => (
-                        <tr key={p.id} className="border-b border-inherit last:border-b-0">
-                            <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{index + 1}</td>
-                            <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{p.order || '-'}</td>
-                            <td className="py-3 px-3 font-medium">{p.name}</td>
-                            <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{typeof p.price === 'number' ? `${p.currency === 'NPR' ? 'रू' : p.currency === 'INR' ? '₹' : '$'}${p.price}` : p.price}{p.pricePeriod}</td>
-                            <td className="py-3 px-3">
-                                <select
-                                    value={p.isActive !== false ? 'active' : 'inactive'}
-                                    onChange={async (e) => {
-                                        const isActive = e.target.value === 'active';
-                                        try {
-                                            await updateBillingPlan(p.id, { ...p, isActive });
-                                            await fetchData();
-                                        } catch (err) {
-                                            alert('Error updating plan status');
-                                        }
-                                    }}
-                                    className={`p-1 text-xs rounded ${p.isActive !== false ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}
-                                >
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                            </td>
-                            <td className="py-3 px-3 text-right">
-                                <button onClick={() => handleEdit(p)} className="material-icons-outlined p-1">edit</button>
-                                <button onClick={() => handleDelete(p)} className="material-icons-outlined p-1 text-red-500">delete</button>
-                            </td>
+            <div className="overflow-x-auto">
+                <table className="w-full text-left" role="table" aria-label="Billing plans management table">
+                    <thead className="border-b border-inherit text-gray-500 dark:text-gray-400 text-sm">
+                        <tr>
+                            <th className="py-2 px-3 font-semibold" scope="col">SN</th>
+                            <th className="py-2 px-3 font-semibold" scope="col">Order</th>
+                            <th className="py-2 px-3 font-semibold" scope="col">Name</th>
+                            <th className="py-2 px-3 font-semibold" scope="col">Price</th>
+                            <th className="py-2 px-3 font-semibold" scope="col">Status</th>
+                            <th className="py-2 px-3 font-semibold text-right" scope="col">Actions</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="text-sm">
+                        {loading ? (
+                            <tr>
+                                <td colSpan={6} className="text-center py-6">
+                                    <div className="spinner mx-auto" aria-label="Loading billing plans"></div>
+                                </td>
+                            </tr>
+                        ) : plans.length === 0 ? (
+                            <tr>
+                                <td colSpan={6} className="text-center py-6 text-gray-500 dark:text-gray-400">
+                                    No billing plans found
+                                </td>
+                            </tr>
+                        ) : (
+                            plans.map((p, index) => (
+                                <tr key={p.id} className="border-b border-inherit last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                                    <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{index + 1}</td>
+                                    <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{p.order || '-'}</td>
+                                    <td className="py-3 px-3 font-medium">{p.name}</td>
+                                    <td className="py-3 px-3 text-gray-500 dark:text-gray-400">
+                                        {typeof p.price === 'number' ? `${p.currency === 'NPR' ? 'रू' : p.currency === 'INR' ? '₹' : '$'}${p.price}` : p.price}{p.pricePeriod}
+                                    </td>
+                                    <td className="py-3 px-3">
+                                        <select
+                                            value={p.isActive !== false ? 'active' : 'inactive'}
+                                            onChange={async (e) => {
+                                                const isActive = e.target.value === 'active';
+                                                try {
+                                                    await updateBillingPlan(p.id, { ...p, isActive });
+                                                    await fetchData();
+                                                } catch (err) {
+                                                    alert('Error updating plan status');
+                                                }
+                                            }}
+                                            className={`p-1 text-xs rounded cursor-pointer ${p.isActive !== false ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}
+                                            aria-label={`Change status for ${p.name}`}
+                                        >
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                        </select>
+                                    </td>
+                                    <td className="py-3 px-3 text-right">
+                                        <button
+                                            onClick={() => handleEdit(p)}
+                                            className="material-icons-outlined p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded"
+                                            title="Edit plan"
+                                            aria-label={`Edit ${p.name}`}
+                                        >
+                                            edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(p)}
+                                            className="material-icons-outlined p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                            title="Delete plan"
+                                            aria-label={`Delete ${p.name}`}
+                                        >
+                                            delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
             <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">Display Order Information</h4>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
@@ -440,22 +793,23 @@ const BillingManagement: React.FC<PageProps> = ({ setModal }) => {
 const NotificationForm: React.FC<{ notification: Partial<Notification> | null; onSave: (data: Partial<Notification>) => void; onCancel: () => void; isSubmitting: boolean; }> = ({ notification, onSave, onCancel, isSubmitting }) => {
     const [formData, setFormData] = useState<Partial<Notification>>({
         title: '',
-        message: '',
-        priority: 'Medium',
-        category: 'Info',
+        description: '',
+        priority: 'Medium' as 'Low' | 'Medium' | 'High',
+        category: 'Info' as 'System' | 'Update' | 'Alert' | 'Info',
         actionUrl: '',
         actionText: '',
         isNew: true,
         timestamp: new Date().toISOString(),
         ...notification
     });
+    const [errors, setErrors] = useState<{[key: string]: string}>({});
 
     useEffect(() => {
         const initialData = {
             title: '',
-            message: '',
-            priority: 'Medium',
-            category: 'Info',
+            description: '',
+            priority: 'Medium' as 'Low' | 'Medium' | 'High',
+            category: 'Info' as 'System' | 'Update' | 'Alert' | 'Info',
             actionUrl: '',
             actionText: '',
             isNew: true,
@@ -463,20 +817,45 @@ const NotificationForm: React.FC<{ notification: Partial<Notification> | null; o
             ...notification
         };
         setFormData(initialData);
+        setErrors({});
     }, [notification]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors: {[key: string]: string} = {};
+        if (!formData.title?.trim()) newErrors.title = 'Notification title is required';
+        if (!formData.description?.trim()) newErrors.description = 'Notification description is required';
+        if (formData.actionUrl && !formData.actionUrl.match(/^https?:\/\/.+/)) newErrors.actionUrl = 'Invalid URL format';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.title?.trim()) {
-            alert('Please enter a notification title');
-            return;
-        }
+        if (!validateForm()) return;
         onSave(formData);
+    };
+
+    const handleReset = () => {
+        setFormData({
+            title: '',
+            description: '',
+            priority: 'Medium' as 'Low' | 'Medium' | 'High',
+            category: 'Info' as 'System' | 'Update' | 'Alert' | 'Info',
+            actionUrl: '',
+            actionText: '',
+            isNew: true,
+            timestamp: new Date().toISOString(),
+            ...notification
+        });
+        setErrors({});
     };
 
     return (
@@ -485,17 +864,124 @@ const NotificationForm: React.FC<{ notification: Partial<Notification> | null; o
                 <div className="p-6">
                     <h2 className="text-xl font-bold mb-4">{notification?.id ? 'Edit Notification' : 'Add New Notification'}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2"><label className="block text-sm font-medium mb-1">Title</label><input type="text" name="title" value={formData.title} onChange={handleInputChange} className="w-full p-2" required /></div>
-                        <div className="md:col-span-2"><label className="block text-sm font-medium mb-1">Message</label><textarea name="message" value={formData.message} onChange={handleInputChange} className="w-full p-2 h-24" required /></div>
-                        <div><label className="block text-sm font-medium mb-1">Priority</label><select name="priority" value={formData.priority} onChange={handleInputChange} className="w-full p-2"><option>Low</option><option>Medium</option><option>High</option></select></div>
-                        <div><label className="block text-sm font-medium mb-1">Category</label><select name="category" value={formData.category} onChange={handleInputChange} className="w-full p-2"><option>Info</option><option>Update</option><option>Alert</option><option>System</option></select></div>
-                        <div><label className="block text-sm font-medium mb-1">Action URL (Optional)</label><input type="url" name="actionUrl" value={formData.actionUrl} onChange={handleInputChange} className="w-full p-2" /></div>
-                        <div><label className="block text-sm font-medium mb-1">Action Text (Optional)</label><input type="text" name="actionText" value={formData.actionText} onChange={handleInputChange} className="w-full p-2" /></div>
+                        <div className="md:col-span-2">
+                            <label htmlFor="notification-title" className="block text-sm font-medium mb-1">Title *</label>
+                            <input
+                                id="notification-title"
+                                type="text"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleInputChange}
+                                className={`w-full p-2 border rounded ${errors.title ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                required
+                                aria-describedby={errors.title ? "notification-title-error" : undefined}
+                            />
+                            {errors.title && <p id="notification-title-error" className="text-xs text-red-500 mt-1">{errors.title}</p>}
+                        </div>
+                        <div className="md:col-span-2">
+                            <label htmlFor="notification-description" className="block text-sm font-medium mb-1">Description *</label>
+                            <textarea
+                                id="notification-description"
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                className={`w-full p-2 border rounded h-24 resize-none ${errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                required
+                                aria-describedby={errors.description ? "notification-description-error" : undefined}
+                            />
+                            {errors.description && <p id="notification-description-error" className="text-xs text-red-500 mt-1">{errors.description}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="notification-priority" className="block text-sm font-medium mb-1">Priority</label>
+                            <select
+                                id="notification-priority"
+                                name="priority"
+                                value={formData.priority}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
+                            >
+                                <option>Low</option>
+                                <option>Medium</option>
+                                <option>High</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="notification-category" className="block text-sm font-medium mb-1">Category</label>
+                            <select
+                                id="notification-category"
+                                name="category"
+                                value={formData.category}
+                                onChange={handleInputChange}
+                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
+                            >
+                                <option>Info</option>
+                                <option>Update</option>
+                                <option>Alert</option>
+                                <option>System</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="notification-action-url" className="block text-sm font-medium mb-1">Action URL (Optional)</label>
+                            <input
+                                id="notification-action-url"
+                                type="url"
+                                name="actionUrl"
+                                value={formData.actionUrl}
+                                onChange={handleInputChange}
+                                placeholder="https://..."
+                                className={`w-full p-2 border rounded ${errors.actionUrl ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                aria-describedby={errors.actionUrl ? "notification-action-url-error" : undefined}
+                            />
+                            {errors.actionUrl && <p id="notification-action-url-error" className="text-xs text-red-500 mt-1">{errors.actionUrl}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="notification-action-text" className="block text-sm font-medium mb-1">Action Text (Optional)</label>
+                            <input
+                                id="notification-action-text"
+                                type="text"
+                                name="actionText"
+                                value={formData.actionText}
+                                onChange={handleInputChange}
+                                placeholder="e.g., View Details"
+                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded"
+                            />
+                        </div>
                     </div>
                 </div>
-                <div className="bg-gray-50 dark:bg-slate-800 p-4 flex justify-end gap-3 rounded-b-xl">
-                    <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
-                    <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Notification'}</button>
+                <div className="bg-gray-50 dark:bg-slate-800 p-4 flex justify-between items-center rounded-b-xl">
+                    <button
+                        type="button"
+                        onClick={handleReset}
+                        className="btn btn-secondary"
+                        disabled={isSubmitting}
+                        title="Reset form to initial values"
+                    >
+                        Reset
+                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="btn btn-secondary"
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <div className="spinner w-4 h-4 mr-2"></div>
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save Notification'
+                            )}
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -583,6 +1069,7 @@ const NotificationManagement: React.FC<PageProps> = ({ setModal, refreshNotifica
             const notificationData = {
                 title,
                 message,
+                description: message,
                 priority,
                 category,
                 ...(actionUrl && { actionUrl }),
@@ -639,32 +1126,61 @@ const NotificationManagement: React.FC<PageProps> = ({ setModal, refreshNotifica
                 <button onClick={handleAdd} className="btn btn-primary"><span className="material-icons-outlined">add</span> New Notification</button>
             </div>
 
-            <div className="overflow-x-auto"><table className="w-full text-left">
-                <thead className="border-b border-inherit text-gray-500 dark:text-gray-400 text-sm">
-                    <tr>
-                        <th className="py-2 px-3 font-semibold">SN</th>
-                        <th className="py-2 px-3 font-semibold">Title</th>
-                        <th className="py-2 px-3 font-semibold">Priority</th>
-                        <th className="py-2 px-3 font-semibold">Category</th>
-                        <th className="py-2 px-3 font-semibold text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="text-sm">
-                    {loading ? (<tr><td colSpan={5} className="text-center py-6"><div className="spinner mx-auto"></div></td></tr>)
-                    : notifications.map((notif, index) => (
-                        <tr key={notif.id} className="border-b border-inherit last:border-b-0">
-                            <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{index + 1}</td>
-                            <td className="py-3 px-3 font-medium">{notif.title}</td>
-                            <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{notif.priority}</td>
-                            <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{notif.category}</td>
-                            <td className="py-3 px-3 text-right">
-                                <button onClick={() => handleEdit(notif)} className="material-icons-outlined p-1">edit</button>
-                                <button onClick={() => handleDelete(notif)} className="material-icons-outlined p-1 text-red-500">delete</button>
-                            </td>
+            <div className="overflow-x-auto">
+                <table className="w-full text-left" role="table" aria-label="Notifications management table">
+                    <thead className="border-b border-inherit text-gray-500 dark:text-gray-400 text-sm">
+                        <tr>
+                            <th className="py-2 px-3 font-semibold" scope="col">SN</th>
+                            <th className="py-2 px-3 font-semibold" scope="col">Title</th>
+                            <th className="py-2 px-3 font-semibold" scope="col">Priority</th>
+                            <th className="py-2 px-3 font-semibold" scope="col">Category</th>
+                            <th className="py-2 px-3 font-semibold text-right" scope="col">Actions</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table></div>
+                    </thead>
+                    <tbody className="text-sm">
+                        {loading ? (
+                            <tr>
+                                <td colSpan={5} className="text-center py-6">
+                                    <div className="spinner mx-auto" aria-label="Loading notifications"></div>
+                                </td>
+                            </tr>
+                        ) : notifications.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} className="text-center py-6 text-gray-500 dark:text-gray-400">
+                                    No notifications found
+                                </td>
+                            </tr>
+                        ) : (
+                            notifications.map((notif, index) => (
+                                <tr key={notif.id} className="border-b border-inherit last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                                    <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{index + 1}</td>
+                                    <td className="py-3 px-3 font-medium">{notif.title}</td>
+                                    <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{notif.priority}</td>
+                                    <td className="py-3 px-3 text-gray-500 dark:text-gray-400">{notif.category}</td>
+                                    <td className="py-3 px-3 text-right">
+                                        <button
+                                            onClick={() => handleEdit(notif)}
+                                            className="material-icons-outlined p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded"
+                                            title="Edit notification"
+                                            aria-label={`Edit ${notif.title}`}
+                                        >
+                                            edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(notif)}
+                                            className="material-icons-outlined p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                            title="Delete notification"
+                                            aria-label={`Delete ${notif.title}`}
+                                        >
+                                            delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
 
             <div className="mt-8 pt-6 border-t border-inherit">
                 <h3 className="text-lg font-bold mb-2">Broadcast Notification</h3>
@@ -713,6 +1229,133 @@ const NotificationManagement: React.FC<PageProps> = ({ setModal, refreshNotifica
     );
 };
 
+// --- Social Links Management ---
+const SocialLinksManagement: React.FC<PageProps> = ({ setModal, user }) => {
+    const [socialLinks, setSocialLinks] = useState({
+        whatsapp: 'https://wa.me/9827792360',
+        youtube: 'https://youtube.com/@margeitpro',
+        facebook: 'https://facebook.com/margeitpro'
+    });
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSave = async () => {
+        setIsSubmitting(true);
+        try {
+            // Here you would save to Firebase/database
+            console.log('Saving social links:', socialLinks);
+            setIsEditing(false);
+        } catch (err) {
+            console.error('Error saving social links:', err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    if (user.role !== 'Admin') {
+        return (
+            <div className="text-center py-8">
+                <span className="material-icons-outlined text-6xl text-gray-400 mb-4">admin_panel_settings</span>
+                <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Admin Access Required</h3>
+                <p className="text-gray-500 dark:text-gray-500">Only administrators can manage social links.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <div className="flex justify-between items-center pb-4">
+                <div>
+                    <h2 className="text-lg font-bold">Manage Social Links</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Update social media links displayed in header and sidebar.</p>
+                </div>
+                <button
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="btn btn-primary"
+                >
+                    <span className="material-icons-outlined">{isEditing ? 'close' : 'edit'}</span>
+                    {isEditing ? 'Cancel' : 'Edit'}
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                    <label className="block text-sm font-medium mb-2">WhatsApp Link</label>
+                    {isEditing ? (
+                        <input
+                            type="url"
+                            value={socialLinks.whatsapp}
+                            onChange={e => setSocialLinks({...socialLinks, whatsapp: e.target.value})}
+                            className="w-full p-2 border rounded"
+                            placeholder="https://wa.me/..."
+                        />
+                    ) : (
+                        <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                            <span className="material-icons-outlined text-green-600">chat</span>
+                            <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">{socialLinks.whatsapp}</a>
+                        </div>
+                    )}
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">YouTube Link</label>
+                    {isEditing ? (
+                        <input
+                            type="url"
+                            value={socialLinks.youtube}
+                            onChange={e => setSocialLinks({...socialLinks, youtube: e.target.value})}
+                            className="w-full p-2 border rounded"
+                            placeholder="https://youtube.com/..."
+                        />
+                    ) : (
+                        <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                            <span className="material-icons-outlined text-red-600">play_circle</span>
+                            <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">{socialLinks.youtube}</a>
+                        </div>
+                    )}
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">Facebook Link</label>
+                    {isEditing ? (
+                        <input
+                            type="url"
+                            value={socialLinks.facebook}
+                            onChange={e => setSocialLinks({...socialLinks, facebook: e.target.value})}
+                            className="w-full p-2 border rounded"
+                            placeholder="https://facebook.com/..."
+                        />
+                    ) : (
+                        <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                            <span className="material-icons-outlined text-blue-600">facebook</span>
+                            <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">{socialLinks.facebook}</a>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {isEditing && (
+                <div className="mt-6 flex justify-end gap-3">
+                    <button
+                        onClick={() => setIsEditing(false)}
+                        className="btn btn-secondary"
+                        disabled={isSubmitting}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        className="btn btn-primary"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Saving...' : 'Save Changes'}
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
 // --- User Role Management ---
 const UserRoleManagement: React.FC<PageProps> = ({ setModal }) => {
     const [users, setUsers] = useState<User[]>([]);
@@ -732,7 +1375,7 @@ const UserRoleManagement: React.FC<PageProps> = ({ setModal }) => {
         setModal({ type: 'progress', props: { title: 'Updating...', message: 'Saving changes.' } });
         try {
             if (user.id) {
-                await updateUser(user.id, { [field]: value });
+                await updateUserByAdmin(user, user.id, { [field]: value });
                 await fetchData();
             }
         } catch (e) {
@@ -791,7 +1434,7 @@ const UserRoleManagement: React.FC<PageProps> = ({ setModal }) => {
 };
 
 // --- Main Form Management Page Component ---
-const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotifications }) => {
+const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotifications, user }) => {
     const [activeTab, setActiveTab] = useState('templates');
 
     const tabs = [
@@ -799,6 +1442,7 @@ const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotificat
         { id: 'billing', label: 'Billing Plans', icon: 'credit_card' },
         { id: 'notifications', label: 'Notifications', icon: 'campaign' },
         { id: 'roles', label: 'User Roles', icon: 'manage_accounts' },
+        { id: 'social', label: 'Social Links', icon: 'share' },
     ];
 
     const renderContent = () => {
@@ -807,6 +1451,7 @@ const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotificat
             case 'billing': return <BillingManagement setModal={setModal} theme={theme} />;
             case 'notifications': return <NotificationManagement setModal={setModal} theme={theme} refreshNotifications={refreshNotifications} />;
             case 'roles': return <UserRoleManagement setModal={setModal} theme={theme} />;
+            case 'social': return <SocialLinksManagement setModal={setModal} theme={theme} user={user} />;
             default: return null;
         }
     };
@@ -823,7 +1468,7 @@ const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotificat
 
             <div className="card">
                 <div className="border-b border-gray-200 dark:border-gray-700">
-                    <nav className="-mb-px flex space-x-8 px-6">
+                    <nav className="-mb-px flex space-x-8 px-6 overflow-x-auto">
                         {tabs.map(tab => (
                             <button
                                 key={tab.id}

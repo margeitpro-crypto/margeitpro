@@ -6,17 +6,14 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       server: {
-        port: 3001,
+        port: 3002,
         host: '0.0.0.0',
-        strictPort: true,
+        strictPort: false,
         proxy: {
           '/gas': {
             target: 'https://script.google.com',
             changeOrigin: true,
-rewrite: (path) => path.replace(/^\/gas/, '/macros/s/AKfycbypiyLAg9a8wqTYbfXe1efdtysMI-LQZWT95ZSKpY_6zaERqrttbcdZr5Zb-x2jcS69kw/exec'),
-
-
-
+            rewrite: (path) => path.replace(/^\/gas/, '/macros/s/AKfycbyXA_pyLsqLDqF6m0vO7qmLugk4p0wWpQlRtIlJB_59BTMLU4BGRaknwhsYQZ4xm9Xx/exec'),
             configure: (proxy, options) => {
               proxy.on('error', (err, req, res) => {
                 console.log('proxy error', err);
@@ -36,6 +33,9 @@ rewrite: (path) => path.replace(/^\/gas/, '/macros/s/AKfycbypiyLAg9a8wqTYbfXe1ef
         host: '0.0.0.0',
       },
       plugins: [react()],
+      build: {
+        cssCodeSplit: false,
+      },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)

@@ -123,19 +123,14 @@ const HomePage: React.FC = () => {
     useEffect(() => {
         const fetchBillingPlans = async () => {
             try {
-                const plans = await getBillingPlansData();
-                // Filter only active plans and sort by order
-                const activePlans = plans
-                    .filter(plan => plan.isActive !== false)
-                    .sort((a, b) => (a.order || 999) - (b.order || 999));
-                setBillingPlans(activePlans);
-            } catch (error) {
-                console.error('Error fetching billing plans:', error);
-                // Fallback to mock data if Firebase fails
+                // For unauthenticated users, use mock data directly
                 const { MOCK_BILLING_PLANS } = await import('../types');
                 setBillingPlans(MOCK_BILLING_PLANS
                     .filter(plan => plan.isActive !== false)
                     .sort((a, b) => (a.order || 999) - (b.order || 999)));
+            } catch (error) {
+                console.error('Error loading billing plans:', error);
+                setBillingPlans([]);
             } finally {
                 setLoadingPlans(false);
             }

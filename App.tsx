@@ -22,7 +22,7 @@ import Notifications from './pages/Notifications';
 import Billing from './pages/Billing';
 import Settings from './pages/Settings';
 
-import TodoPage from './pages/Todo';
+
 import FormManagement from './pages/FormManagement';
 import SystemAnalytics from './pages/SystemAnalytics';
 
@@ -33,6 +33,8 @@ import ToastContainer from './components/ToastContainer';
 // Mock data (for notifications, will be replaced by real data)
 import { MOCK_NOTIFICATIONS } from './types';
 import Help from './pages/Help';
+import { useKeyboardShortcuts, globalShortcuts } from './hooks/useKeyboardShortcuts';
+import { useTheme } from './hooks/useTheme';
 
 const allMenuItems = [...adminMenu.items, ...generalMenu.items];
 
@@ -40,7 +42,8 @@ const AppContent: React.FC = () => {
     const { user: firebaseUser } = UserAuth();
 
     // --- State Management ---
-    const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+    const { theme: themeConfig, toggleMode } = useTheme();
+    const [theme, setTheme] = useState(themeConfig.mode);
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState('');
@@ -57,15 +60,7 @@ const AppContent: React.FC = () => {
 
     // --- Effects ---
 
-    // Theme effect
-    useEffect(() => {
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-        localStorage.setItem('theme', theme);
-    }, [theme]);
+    // Theme effect is now handled by useTheme hook
 
     // Authentication and User Data effect
     useEffect(() => {
@@ -93,8 +88,8 @@ const AppContent: React.FC = () => {
                         status: 'Active',
                         joinDate: new Date().toISOString().split('T')[0],
                         accessPage: isAdmin
-                            ? 'admin-control-center,system-analytics,form-management,user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,todo,help'
-                            : 'user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,todo,help',
+                            ? 'admin-control-center,system-analytics,form-management,user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,help'
+                            : 'user-dashboard,marge-it,templates,merge-logs,notifications,billing,settings,help',
                         plan: isAdmin ? 'Enterprise' : 'Free',
                         hasProAccess: isAdmin,
                     };
@@ -143,7 +138,18 @@ const AppContent: React.FC = () => {
         }
     }, [user, refreshNotifications]);
 
-    const toggleTheme = () => setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    const toggleTheme = () => {
+        toggleMode();
+        setTheme(themeConfig.mode === 'light' ? 'dark' : 'light');
+    };
+
+    // Keyboard shortcuts
+    useKeyboardShortcuts(globalShortcuts(navigateTo, toggleTheme));
+
+    // Update theme when themeConfig changes
+    React.useEffect(() => {
+        setTheme(themeConfig.mode);
+    }, [themeConfig.mode]);
 
     // --- Memoized Values ---
     const currentPageLabel = useMemo(() => {
@@ -181,7 +187,7 @@ const AppContent: React.FC = () => {
             case 'notifications': return <Notifications {...pageProps} />;
             case 'billing': return <Billing {...pageProps} />;
             case 'settings': return <Settings {...pageProps} />;
-            case 'todo': return <TodoPage {...pageProps} />;
+            case 'todo': return null; // Notepad removed
             case 'help': return <Help {...pageProps} />;
             default:
                 const defaultPage = accessiblePages.includes('admin-control-center') ? 'admin-control-center' : 'user-dashboard';
@@ -211,10 +217,10 @@ const AppContent: React.FC = () => {
     return (
         <div className={`app-layout theme-${theme} flex h-screen overflow-hidden`}>
             <div className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? 'block' : 'hidden'} bg-black/30`} onClick={() => setSidebarOpen(false)}></div>
-            <div className={`fixed lg:relative top-0 left-0 h-full z-50 lg:z-auto transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+            <div className={`fixed top-0 left-0 h-full z-50 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
                 <Sidebar user={user} activePage={currentPage} navigateTo={navigateTo} />
             </div>
-            <div className="flex flex-col flex-1 h-screen overflow-hidden lg:ml-0">
+            <div className="flex flex-col flex-1 h-screen overflow-hidden lg:ml-64">
                 <Header
                     sidebarOpen={sidebarOpen}
                     setSidebarOpen={setSidebarOpen}
@@ -225,7 +231,7 @@ const AppContent: React.FC = () => {
                     currentPageLabel={currentPageLabel}
                     notifications={notifications}
                 />
-                <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-light-background dark:bg-dark-background">
+                <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-light-background">
                     {pageToRender}
                 </main>
             </div>

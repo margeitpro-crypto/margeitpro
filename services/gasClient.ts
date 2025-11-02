@@ -36,6 +36,52 @@ export const updateUser = (userId: string, userData: Partial<User>) => {
     return updateDoc(userDocRef, userData);
 };
 
+// Admin-only update function with full permissions
+export const updateUserByAdmin = async (adminUser: User, targetUserId: string, userData: Partial<User>) => {
+    // Check if the current user is an admin
+    if (adminUser.role !== 'Admin') {
+        throw new Error('Unauthorized: Only admins can perform this action');
+    }
+
+    // Prevent admins from modifying their own admin status (security measure)
+    if (adminUser.id === targetUserId && userData.role && userData.role !== 'Admin') {
+        throw new Error('Admins cannot remove their own admin privileges');
+    }
+
+    // FIX: Changed to Firebase v9 syntax.
+    const userDocRef = doc(db, 'users', targetUserId);
+    return updateDoc(userDocRef, userData);
+};
+
+// User-only update function with limited permissions
+export const updateUserByUser = async (currentUser: User, userData: Partial<User>) => {
+    // Users can only update their own data
+    if (!currentUser.id) {
+        throw new Error('User ID is required');
+    }
+
+    // Define allowed fields for user updates
+    const allowedFields = ['profilePictureId', 'profilePictureUrl'];
+    const filteredData: Partial<Pick<User, 'profilePictureId' | 'profilePictureUrl'>> = {};
+
+    // Only allow updates to permitted fields
+    allowedFields.forEach(field => {
+        const value = userData[field as keyof User];
+        if (value !== undefined) {
+            filteredData[field as keyof typeof filteredData] = value as any;
+        }
+    });
+
+    // If no allowed fields were provided, throw error
+    if (Object.keys(filteredData).length === 0) {
+        throw new Error('No valid fields to update. Users can only update profile picture.');
+    }
+
+    // FIX: Changed to Firebase v9 syntax.
+    const userDocRef = doc(db, 'users', currentUser.id);
+    return updateDoc(userDocRef, filteredData);
+};
+
 export const deleteUser = (userId: string) => {
     // FIX: Changed to Firebase v9 syntax.
     const userDocRef = doc(db, 'users', userId);
@@ -56,25 +102,125 @@ export const getAdminDashboardData = async (): Promise<any> => {
     // This is a simplified example. A real implementation might use aggregated data.
     const users = await getUsersData();
     const merges = await getMergeLogsData();
-    return { 
-        totalUsers: users.length, 
-        totalMerges: merges.length, 
-        activeSubscriptions: users.filter(u => u.plan !== 'Free').length,
-        recentMerges: merges.slice(0, 5) 
+
+    // Calculate real analytics data
+    const totalUsers = users.length;
+    const totalMerges = merges.length;
+    const activeSubscriptions = users.filter(u => u.plan !== 'Free').length;
+
+    // Calculate merge success/failure rates
+    const successfulMerges = merges.filter(m => m.status === 'Success').length;
+    const failedMerges = merges.filter(m => m.status === 'Failed').length;
+
+    // Calculate API calls (estimate based on merges + other activities)
+    const estimatedApiCalls = totalMerges * 3; // Rough estimate: 3 API calls per merge
+
+    // Calculate user activity by role
+    const adminUsers = users.filter(u => u.role === 'Admin').length;
+    const regularUsers = users.filter(u => u.role !== 'Admin').length;
+
+    // Calculate merge activity over last 30 days
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const recentMerges = merges.filter(merge => {
+        const mergeDate = new Date(merge.timestamp || merge.date);
+        return mergeDate >= thirtyDaysAgo && mergeDate <= now;
+    });
+
+    // Group by day for the last 30 days
+    const activityByDay: { [key: string]: number } = {};
+    for (let i = 29; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateKey = date.toISOString().split('T')[0];
+        activityByDay[dateKey] = 0;
+    }
+
+    recentMerges.forEach(merge => {
+        const mergeDate = new Date(merge.timestamp || merge.date);
+        const dateKey = mergeDate.toISOString().split('T')[0];
+        if (activityByDay.hasOwnProperty(dateKey)) {
+            activityByDay[dateKey]++;
+        }
+    });
+
+    const apiCallsLast30Days = Object.values(activityByDay).map(count => count * 3); // Estimate API calls
+
+    return {
+        totalUsers,
+        totalMerges,
+        activeSubscriptions,
+        recentMerges: merges.slice(0, 5),
+        apiCallsLast30Days,
+        mergeStatus: { success: successfulMerges, failed: failedMerges },
+        userActivity: { admins: adminUsers, users: regularUsers }
     };
 };
 export const getUserDashboardData = async (userEmail: string): Promise<any> => {
-    // FIX: Changed to Firebase v9 syntax.
-    const q = query(collection(db, 'mergeLogs'), where("user", "==", userEmail), orderBy("timestamp", "desc"));
+    console.log('getUserDashboardData: Fetching data for user:', userEmail);
+    // FIX: Changed to Firebase v9 syntax. Remove orderBy to avoid index requirement for now
+    const q = query(collection(db, 'mergeLogs'), where("user", "==", userEmail));
     const mergeSnapshot = await getDocs(q);
-    const recentUserMerges = snapshotToArray<MergeLog>(mergeSnapshot);
+    const allUserMerges = snapshotToArray<MergeLog>(mergeSnapshot);
+    console.log('getUserDashboardData: Found', allUserMerges.length, 'merge logs');
 
-    return {
-        totalUserMerges: recentUserMerges.length,
-        docsGenerated: recentUserMerges.filter(l => l.type === 'Sheet to Docs').length,
-        slidesGenerated: recentUserMerges.filter(l => l.type === 'Sheet to Slides').length,
-        recentUserMerges: recentUserMerges.slice(0, 5)
+    // Sort in memory instead of using orderBy
+    allUserMerges.sort((a, b) => {
+        const timeA = new Date(a.timestamp || a.date).getTime();
+        const timeB = new Date(b.timestamp || b.date).getTime();
+        return timeB - timeA; // Descending order
+    });
+
+    // Calculate total merges, docs, slides
+    const totalUserMerges = allUserMerges.length;
+    const docsGenerated = allUserMerges.filter(l => l.type === 'Sheet to Docs').length;
+    const slidesGenerated = allUserMerges.filter(l => l.type === 'Sheet to Slides').length;
+
+    // Calculate success rate
+    const successfulMerges = allUserMerges.filter(l => l.status === 'Success').length;
+    const successRate = totalUserMerges > 0 ? Math.round((successfulMerges / totalUserMerges) * 100) : 0;
+
+    // Count unique templates used
+    const uniqueTemplates = new Set(allUserMerges.filter(l => l.templateId).map(l => l.templateId));
+    const templatesUsed = uniqueTemplates.size;
+
+    // Aggregate merge activity for the last 7 days
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const recentMerges = allUserMerges.filter(merge => {
+        const mergeDate = new Date(merge.timestamp || merge.date);
+        return mergeDate >= sevenDaysAgo && mergeDate <= now;
+    });
+
+    // Group by day (last 7 days)
+    const activityByDay: { [key: string]: number } = {};
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+        activityByDay[dateKey] = 0;
+    }
+
+    recentMerges.forEach(merge => {
+        const mergeDate = new Date(merge.timestamp || merge.date);
+        const dateKey = mergeDate.toISOString().split('T')[0];
+        if (activityByDay.hasOwnProperty(dateKey)) {
+            activityByDay[dateKey]++;
+        }
+    });
+
+    // Convert to array for chart (last 7 days, Mon-Sun or actual dates)
+    const chartData = Object.values(activityByDay);
+
+    const result = {
+        totalUserMerges,
+        docsGenerated,
+        slidesGenerated,
+        successRate,
+        templatesUsed,
+        mergeActivityLast7Days: chartData,
+        recentUserMerges: allUserMerges.slice(0, 5)
     };
+    console.log('getUserDashboardData: Returning data:', result);
+    return result;
 };
 
 // --- Other Services ---
@@ -231,11 +377,26 @@ export const deleteTemplate = async (id: string) => {
     return deleteDoc(doc(db, 'templates', id));
 };
 
-export const getMergeLogsData = async (): Promise<MergeLog[]> => {
+export const getMergeLogsData = async (userEmail?: string): Promise<MergeLog[]> => {
     // FIX: Changed to Firebase v9 syntax.
-    const logSnapshot = await getDocs(collection(db, 'mergeLogs'));
-    return snapshotToArray<MergeLog>(logSnapshot);
+    if (userEmail) {
+        // Filter by user email for regular users
+        const q = query(collection(db, 'mergeLogs'), where("user", "==", userEmail));
+        const logSnapshot = await getDocs(q);
+        return snapshotToArray<MergeLog>(logSnapshot);
+    } else {
+        // Admin gets all logs
+        const logSnapshot = await getDocs(collection(db, 'mergeLogs'));
+        return snapshotToArray<MergeLog>(logSnapshot);
+    }
 };
+
+export const addMergeLog = async (log: Partial<MergeLog>) => {
+    // FIX: Changed to Firebase v9 syntax.
+    const docRef = await addDoc(collection(db, 'mergeLogs'), log);
+    return docRef;
+};
+
 // FIX: Changed to Firebase v9 syntax.
 export const deleteMergeLog = (id: string) => deleteDoc(doc(db, 'mergeLogs', id));
 
@@ -266,6 +427,25 @@ export const addNotification = async (notification: Partial<Notification>) => {
 };
 export const updateNotification = (id: string, notification: Partial<Notification>) => updateDoc(doc(db, 'notifications', id), notification);
 export const deleteNotification = (id: string) => deleteDoc(doc(db, 'notifications', id));
+
+/**
+ * Generate embed-friendly preview URL for Google Docs or Slides
+ * @param fileId - Google Docs/Slides file ID
+ * @param mode - 'docs' | 'slides'
+ * @returns preview URL string
+ */
+export function generatePreviewUrl(fileId: string, mode: 'docs' | 'slides'): string {
+  if (!fileId) return '';
+
+  switch (mode) {
+    case 'slides':
+      return `https://docs.google.com/presentation/d/${fileId}/preview`;
+    case 'docs':
+      return `https://docs.google.com/document/d/${fileId}/preview`;
+    default:
+      return '';
+  }
+}
 
 // Toast notification helper
 export const showToast = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string, duration?: number, action?: { text: string, onClick: () => void }) => {
