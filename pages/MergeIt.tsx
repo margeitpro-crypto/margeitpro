@@ -2,6 +2,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { PageProps, MergeLog } from '../types';
 import { runSlidesMerge, runDocsMerge, runSlidesPreview, runDocsPreview, addMergeLog, addNotification } from '../services/gasClient';
+import { useFloating, FloatingPortal, flip, shift, offset } from '@floating-ui/react';
+import { getFileInfo, getDownloadUrl } from '../services/googleFileUtils';
 
 type MergeMode = 'slides' | 'docs';
 
@@ -28,6 +30,8 @@ const downloadFormats = {
     docs: [ { format: 'docx', label: 'Word (.docx)' }, { format: 'pdf', label: 'PDF (.pdf)' }, { format: 'rtf', label: 'RTF (.rtf)' }, { format: 'txt', label: 'Text (.txt)' } ]
 };
 
+
+
 const Label: React.FC<{ htmlFor: string; children: React.ReactNode }> = ({ htmlFor, children }) => (
   <label htmlFor={htmlFor} className="block text-sm font-medium mb-1">{children}</label>
 );
@@ -44,8 +48,18 @@ export default function MargeItPage({ setModal, user }: PageProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [sort, setSort] = useState<{ column: keyof MergeLog; direction: 'asc' | 'desc' }>({ column: 'timestamp', direction: 'desc' });
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const { refs, floatingStyles } = useFloating({
+    open: openDropdown !== null,
+    onOpenChange: (open) => {
+      if (!open) {
+        setOpenDropdown(null);
+      }
+    },
+    middleware: [offset(5), flip(), shift()],
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -84,12 +98,17 @@ export default function MargeItPage({ setModal, user }: PageProps) {
         return;
     }
 
+    if (formData.endRow && parseInt(formData.startRow) > parseInt(formData.endRow)) {
+        setModal({ type: 'confirmation', props: { title: 'Validation Error', message: 'Start row cannot be greater than end row.', confirmText: "Okay", confirmColor: 'btn-primary', onConfirm: () => setModal({ type: null, props: {} }) }});
+        return;
+    }
+
     setIsProcessing(true);
     setModal({ type: 'progress', props: { title: 'Processing Merge...', message: 'Please wait, this may take a few moments.' } });
 
     try {
       const mergeFunction = currentMode === 'slides' ? runSlidesMerge : runDocsMerge;
-      const response: any = await mergeFunction({ ...formData, runtype: runType });
+      const response: any = await mergeFunction({ ...formData, mode: currentMode, runtype: runType as 'custom' | 'allinone' });
 
       if (response.error) throw new Error(response.error);
 
@@ -190,12 +209,17 @@ export default function MargeItPage({ setModal, user }: PageProps) {
         return;
     }
 
+    if (formData.endRow && parseInt(formData.startRow) > parseInt(formData.endRow)) {
+        setModal({ type: 'confirmation', props: { title: 'Validation Error', message: 'Start row cannot be greater than end row.', confirmText: "Okay", confirmColor: 'btn-primary', onConfirm: () => setModal({ type: null, props: {} }) }});
+        return;
+    }
+
     setIsProcessing(true);
     setModal({ type: 'progress', props: { title: 'Generating Preview...', message: 'Please wait, this may take a few moments.' } });
 
     try {
       const previewFunction = currentMode === 'slides' ? runSlidesPreview : runDocsPreview;
-      const response: any = await previewFunction(formData);
+      const response: any = await previewFunction({ ...formData, mode: currentMode });
 
       if (response.error) throw new Error(response.error);
 
@@ -222,42 +246,15 @@ export default function MargeItPage({ setModal, user }: PageProps) {
 
   const handleDropdownToggle = (event: React.MouseEvent<HTMLButtonElement>, sn: number) => {
     if (openDropdown === sn) {
-        setOpenDropdown(null);
-        setDropdownPosition(null);
+      setOpenDropdown(null);
     } else {
-        const log = results.find(l => l.sn === sn);
-        if (!log) return;
-
-        const isSlides = log.type === 'Sheet to Slides';
-        
-        const DROPDOWN_WIDTH = 224; // w-56 in tailwind
-        const DROPDOWN_HEIGHT_SLIDES = 275;
-        const DROPDOWN_HEIGHT_DOCS = 305;
-        const DROPDOWN_HEIGHT = isSlides ? DROPDOWN_HEIGHT_SLIDES : DROPDOWN_HEIGHT_DOCS;
-        const VERTICAL_OFFSET = 5; 
-
-        const rect = event.currentTarget.getBoundingClientRect();
-        
-        let leftPosition = rect.left;
-        if (rect.left + DROPDOWN_WIDTH > window.innerWidth) {
-            leftPosition = rect.right - DROPDOWN_WIDTH;
-        }
-
-        let topPosition;
-        if (rect.bottom + DROPDOWN_HEIGHT + VERTICAL_OFFSET > window.innerHeight) {
-            topPosition = rect.top + window.scrollY - DROPDOWN_HEIGHT - VERTICAL_OFFSET;
-        } else {
-            topPosition = rect.bottom + window.scrollY + VERTICAL_OFFSET;
-        }
-
-        setDropdownPosition({ top: topPosition, left: leftPosition });
-        setOpenDropdown(sn);
+      refs.setReference(event.currentTarget);
+      setOpenDropdown(sn);
     }
   };
 
   const closeDropdown = () => {
-      setOpenDropdown(null);
-      setDropdownPosition(null);
+    setOpenDropdown(null);
   };
 
   const handleCopyLink = (url: string) => {
@@ -271,19 +268,24 @@ export default function MargeItPage({ setModal, user }: PageProps) {
   };
 
   const handleDownload = (baseUrl: string, format: string) => {
-      // Extract file ID from Google Docs/Slides URL
-      const fileIdMatch = baseUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
-      if (!fileIdMatch) {
-          alert('Invalid file URL format.');
+      // Use the getFileInfo helper to extract file information
+      const fileInfo = getFileInfo(baseUrl);
+      if (!fileInfo) {
+          console.warn('Invalid file URL format. Could not extract file information from:', baseUrl);
+          alert('Invalid file URL format. Please check the URL and try again.');
           closeDropdown();
           return;
       }
-      const fileId = fileIdMatch[1];
-      // Determine if it's docs or slides based on the URL
-      const isSlides = baseUrl.includes('presentation') || baseUrl.includes('slides');
-      const downloadUrl = isSlides
-          ? `https://docs.google.com/presentation/d/${fileId}/export?format=${format}`
-          : `https://docs.google.com/document/d/${fileId}/export?format=${format}`;
+
+      // Generate the download URL using the helper
+      const downloadUrl = getDownloadUrl(fileInfo, format);
+      if (!downloadUrl) {
+          console.warn('Failed to generate download URL for file:', fileInfo.fileId, 'format:', format);
+          alert('Failed to generate download URL. Please try again.');
+          closeDropdown();
+          return;
+      }
+
       window.open(downloadUrl, '_blank');
       closeDropdown();
   };
@@ -435,28 +437,30 @@ export default function MargeItPage({ setModal, user }: PageProps) {
             )}
         </div>
       </div>
-      {openDropdown && dropdownPosition && (() => {
-          const log = results.find(l => l.sn === openDropdown);
-          if (!log || !log.fileUrl) return null;
-          return (
-              <div 
-                  ref={dropdownRef}
-                  className="card fixed w-56 z-50 p-2"
-                  style={{ top: `${dropdownPosition.top}px`, left: `${dropdownPosition.left}px` }}
-              >
-                  <ul>
-                      <li><a href={log.fileUrl} target="_blank" rel="noopener noreferrer" onClick={closeDropdown} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-blue-500">open_in_new</span>Open</a></li>
-                      <li><button onClick={() => handleCopyLink(log.fileUrl!)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-green-500">content_copy</span>Copy Link</button></li>
-                      <li className="my-1 border-t border-inherit"></li>
-                      <li className="px-3 pt-2 pb-1 text-xs text-gray-400">Download As</li>
-                      {(log.type === 'Sheet to Slides' ? downloadFormats.slides : downloadFormats.docs).map(df => (
-                          <li key={df.format}><button onClick={() => handleDownload(log.fileUrl!, df.format)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-gray-500">download</span>{df.label}</button></li>
-                      ))}
-                      <li className="my-1 border-t border-inherit"></li>
-                      <li><button onClick={() => handleRemoveResult(log.sn)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-error)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(228, 30, 63, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base">delete</span>Remove from list</button></li>
-                  </ul>
-              </div>
-          );
+      {openDropdown && (() => {
+        const log = results.find(l => l.sn === openDropdown);
+        if (!log || !log.fileUrl) return null;
+        return (
+          <FloatingPortal>
+            <div
+              ref={refs.setFloating}
+              className="card w-56 z-50 p-2"
+              style={floatingStyles}
+            >
+              <ul>
+                <li><a href={log.fileUrl} target="_blank" rel="noopener noreferrer" onClick={closeDropdown} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-blue-500">open_in_new</span>Open</a></li>
+                <li><button onClick={() => handleCopyLink(log.fileUrl!)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-green-500">content_copy</span>Copy Link</button></li>
+                <li className="my-1 border-t border-inherit"></li>
+                <li className="px-3 pt-2 pb-1 text-xs text-gray-400">Download As</li>
+                {(log.type === 'Sheet to Slides' ? downloadFormats.slides : downloadFormats.docs).map(df => (
+                  <li key={df.format}><button onClick={() => handleDownload(log.fileUrl!, df.format)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-text-primary)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--fb-border)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base text-gray-500">download</span>{df.label}</button></li>
+                ))}
+                <li className="my-1 border-t border-inherit"></li>
+                <li><button onClick={() => handleRemoveResult(log.sn)} className="flex items-center gap-3 w-full px-3 py-2 text-left text-sm rounded-md transition-colors" style={{ color: 'var(--fb-error)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(228, 30, 63, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><span className="material-icons-outlined text-base">delete</span>Remove from list</button></li>
+              </ul>
+            </div>
+          </FloatingPortal>
+        );
       })()}
     </div>
   );
