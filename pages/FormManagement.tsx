@@ -19,11 +19,11 @@ const allPages = [...adminMenu.items, ...generalMenu.items];
 // --- Template Management ---
 
 const TemplateForm: React.FC<{ template: Partial<Template> | null; onSave: (data: Partial<Template>) => void; onCancel: () => void; isSubmitting: boolean; }> = ({ template, onSave, onCancel, isSubmitting }) => {
-    const [formData, setFormData] = useState<Partial<Template>>({ name: '', id: '', type: 'Slides', plan: 'Free', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template });
+    const [formData, setFormData] = useState<Partial<Template>>({ name: '', id: '', type: 'Slides' as 'Slides' | 'Docs' | 'Sheet', plan: 'Free' as 'Free' | 'Pro', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template });
     const [errors, setErrors] = useState<{[key: string]: string}>({});
 
     useEffect(() => {
-        const initialData = { name: '', id: '', type: 'Slides', plan: 'Free', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template };
+        const initialData = { name: '', id: '', type: 'Slides' as 'Slides' | 'Docs' | 'Sheet', plan: 'Free' as 'Free' | 'Pro', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template };
         setFormData(initialData);
         setErrors({});
     }, [template]);
@@ -55,7 +55,7 @@ const TemplateForm: React.FC<{ template: Partial<Template> | null; onSave: (data
     };
 
     const handleReset = () => {
-        setFormData({ name: '', id: '', type: 'Slides', plan: 'Free', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template });
+        setFormData({ name: '', id: '', type: 'Slides' as 'Slides' | 'Docs' | 'Sheet', plan: 'Free' as 'Free' | 'Pro', description: '', imageUrl: '', imageUrl2: '', sheetUrl: '', ...template });
         setErrors({});
     };
 
@@ -371,13 +371,13 @@ const TemplateManagement: React.FC<PageProps> = ({ setModal }) => {
 const BillingForm: React.FC<{ plan: Partial<BillingPlan> | null; onSave: (data: Partial<BillingPlan>) => void; onCancel: () => void; isSubmitting: boolean; }> = ({ plan, onSave, onCancel, isSubmitting }) => {
     const [formData, setFormData] = useState(() => {
         const { features, ...rest } = plan || {};
-        return { name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, currency: 'USD', order: '', ...rest, features: Array.isArray(features) ? features.join('\n') : '' };
+        return { name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, currency: 'USD', order: 0, ...rest, features: Array.isArray(features) ? features.join('\n') : '' };
     });
     const [errors, setErrors] = useState<{[key: string]: string}>({});
 
     useEffect(() => {
         const { features, ...rest } = plan || {};
-        setFormData({ name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, currency: 'USD', order: '', ...rest, features: Array.isArray(features) ? features.join('\n') : '' });
+        setFormData({ name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, currency: 'USD', order: 0, ...rest, features: Array.isArray(features) ? features.join('\n') : '' });
         setErrors({});
     }, [plan]);
 
@@ -414,7 +414,7 @@ const BillingForm: React.FC<{ plan: Partial<BillingPlan> | null; onSave: (data: 
 
     const handleReset = () => {
         const { features, ...rest } = plan || {};
-        setFormData({ name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, currency: 'USD', order: '', ...rest, features: Array.isArray(features) ? features.join('\n') : '' });
+        setFormData({ name: '', price: '', pricePeriod: '/ mo', buttonText: 'Get Started', isActive: true, currency: 'USD', order: 0, ...rest, features: Array.isArray(features) ? features.join('\n') : '' });
         setErrors({});
     };
 
@@ -793,9 +793,9 @@ const BillingManagement: React.FC<PageProps> = ({ setModal }) => {
 const NotificationForm: React.FC<{ notification: Partial<Notification> | null; onSave: (data: Partial<Notification>) => void; onCancel: () => void; isSubmitting: boolean; }> = ({ notification, onSave, onCancel, isSubmitting }) => {
     const [formData, setFormData] = useState<Partial<Notification>>({
         title: '',
-        message: '',
-        priority: 'Medium',
-        category: 'Info',
+        description: '',
+        priority: 'Medium' as 'Low' | 'Medium' | 'High',
+        category: 'Info' as 'System' | 'Update' | 'Alert' | 'Info',
         actionUrl: '',
         actionText: '',
         isNew: true,
@@ -807,9 +807,9 @@ const NotificationForm: React.FC<{ notification: Partial<Notification> | null; o
     useEffect(() => {
         const initialData = {
             title: '',
-            message: '',
-            priority: 'Medium',
-            category: 'Info',
+            description: '',
+            priority: 'Medium' as 'Low' | 'Medium' | 'High',
+            category: 'Info' as 'System' | 'Update' | 'Alert' | 'Info',
             actionUrl: '',
             actionText: '',
             isNew: true,
@@ -831,7 +831,7 @@ const NotificationForm: React.FC<{ notification: Partial<Notification> | null; o
     const validateForm = () => {
         const newErrors: {[key: string]: string} = {};
         if (!formData.title?.trim()) newErrors.title = 'Notification title is required';
-        if (!formData.message?.trim()) newErrors.message = 'Notification message is required';
+        if (!formData.description?.trim()) newErrors.description = 'Notification description is required';
         if (formData.actionUrl && !formData.actionUrl.match(/^https?:\/\/.+/)) newErrors.actionUrl = 'Invalid URL format';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -846,9 +846,9 @@ const NotificationForm: React.FC<{ notification: Partial<Notification> | null; o
     const handleReset = () => {
         setFormData({
             title: '',
-            message: '',
-            priority: 'Medium',
-            category: 'Info',
+            description: '',
+            priority: 'Medium' as 'Low' | 'Medium' | 'High',
+            category: 'Info' as 'System' | 'Update' | 'Alert' | 'Info',
             actionUrl: '',
             actionText: '',
             isNew: true,
@@ -879,17 +879,17 @@ const NotificationForm: React.FC<{ notification: Partial<Notification> | null; o
                             {errors.title && <p id="notification-title-error" className="text-xs text-red-500 mt-1">{errors.title}</p>}
                         </div>
                         <div className="md:col-span-2">
-                            <label htmlFor="notification-message" className="block text-sm font-medium mb-1">Message *</label>
+                            <label htmlFor="notification-description" className="block text-sm font-medium mb-1">Description *</label>
                             <textarea
-                                id="notification-message"
-                                name="message"
-                                value={formData.message}
+                                id="notification-description"
+                                name="description"
+                                value={formData.description}
                                 onChange={handleInputChange}
-                                className={`w-full p-2 border rounded h-24 resize-none ${errors.message ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                className={`w-full p-2 border rounded h-24 resize-none ${errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                                 required
-                                aria-describedby={errors.message ? "notification-message-error" : undefined}
+                                aria-describedby={errors.description ? "notification-description-error" : undefined}
                             />
-                            {errors.message && <p id="notification-message-error" className="text-xs text-red-500 mt-1">{errors.message}</p>}
+                            {errors.description && <p id="notification-description-error" className="text-xs text-red-500 mt-1">{errors.description}</p>}
                         </div>
                         <div>
                             <label htmlFor="notification-priority" className="block text-sm font-medium mb-1">Priority</label>
@@ -1069,6 +1069,7 @@ const NotificationManagement: React.FC<PageProps> = ({ setModal, refreshNotifica
             const notificationData = {
                 title,
                 message,
+                description: message,
                 priority,
                 category,
                 ...(actionUrl && { actionUrl }),
@@ -1229,13 +1230,11 @@ const NotificationManagement: React.FC<PageProps> = ({ setModal, refreshNotifica
 };
 
 // --- Social Links Management ---
-const SocialLinksManagement: React.FC<PageProps> = ({ setModal }) => {
+const SocialLinksManagement: React.FC<PageProps> = ({ setModal, user }) => {
     const [socialLinks, setSocialLinks] = useState({
-        email: 'margeitpro@gmail.com',
-        phone: '9827792360',
-        whatsapp: '9827792360',
-        address: 'Beldandi-5, Kanchanpur, Nepal',
-        developer: 'Man Singh Rana'
+        whatsapp: 'https://wa.me/9827792360',
+        youtube: 'https://youtube.com/@margeitpro',
+        facebook: 'https://facebook.com/margeitpro'
     });
     const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1253,15 +1252,25 @@ const SocialLinksManagement: React.FC<PageProps> = ({ setModal }) => {
         }
     };
 
+    if (user.role !== 'Admin') {
+        return (
+            <div className="text-center py-8">
+                <span className="material-icons-outlined text-6xl text-gray-400 mb-4">admin_panel_settings</span>
+                <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Admin Access Required</h3>
+                <p className="text-gray-500 dark:text-gray-500">Only administrators can manage social links.</p>
+            </div>
+        );
+    }
+
     return (
         <div>
             <div className="flex justify-between items-center pb-4">
                 <div>
-                    <h2 className="text-lg font-bold">Manage Social Links & Contact Info</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Update contact information and social media links.</p>
+                    <h2 className="text-lg font-bold">Manage Social Links</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Update social media links displayed in header and sidebar.</p>
                 </div>
-                <button 
-                    onClick={() => setIsEditing(!isEditing)} 
+                <button
+                    onClick={() => setIsEditing(!isEditing)}
                     className="btn btn-primary"
                 >
                     <span className="material-icons-outlined">{isEditing ? 'close' : 'edit'}</span>
@@ -1269,106 +1278,72 @@ const SocialLinksManagement: React.FC<PageProps> = ({ setModal }) => {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Email</label>
-                        {isEditing ? (
-                            <input
-                                type="email"
-                                value={socialLinks.email}
-                                onChange={e => setSocialLinks({...socialLinks, email: e.target.value})}
-                                className="w-full p-2 border rounded"
-                            />
-                        ) : (
-                            <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
-                                <span className="material-icons-outlined text-blue-500">email</span>
-                                <span>{socialLinks.email}</span>
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Phone</label>
-                        {isEditing ? (
-                            <input
-                                type="tel"
-                                value={socialLinks.phone}
-                                onChange={e => setSocialLinks({...socialLinks, phone: e.target.value})}
-                                className="w-full p-2 border rounded"
-                            />
-                        ) : (
-                            <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
-                                <span className="material-icons-outlined text-green-500">phone</span>
-                                <span>{socialLinks.phone}</span>
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2">WhatsApp</label>
-                        {isEditing ? (
-                            <input
-                                type="tel"
-                                value={socialLinks.whatsapp}
-                                onChange={e => setSocialLinks({...socialLinks, whatsapp: e.target.value})}
-                                className="w-full p-2 border rounded"
-                            />
-                        ) : (
-                            <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
-                                <span className="material-icons-outlined text-green-600">chat</span>
-                                <span>{socialLinks.whatsapp}</span>
-                            </div>
-                        )}
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                    <label className="block text-sm font-medium mb-2">WhatsApp Link</label>
+                    {isEditing ? (
+                        <input
+                            type="url"
+                            value={socialLinks.whatsapp}
+                            onChange={e => setSocialLinks({...socialLinks, whatsapp: e.target.value})}
+                            className="w-full p-2 border rounded"
+                            placeholder="https://wa.me/..."
+                        />
+                    ) : (
+                        <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                            <span className="material-icons-outlined text-green-600">chat</span>
+                            <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">{socialLinks.whatsapp}</a>
+                        </div>
+                    )}
                 </div>
 
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Developer Name</label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                value={socialLinks.developer}
-                                onChange={e => setSocialLinks({...socialLinks, developer: e.target.value})}
-                                className="w-full p-2 border rounded"
-                            />
-                        ) : (
-                            <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
-                                <span className="material-icons-outlined text-purple-500">person</span>
-                                <span>{socialLinks.developer}</span>
-                            </div>
-                        )}
-                    </div>
+                <div>
+                    <label className="block text-sm font-medium mb-2">YouTube Link</label>
+                    {isEditing ? (
+                        <input
+                            type="url"
+                            value={socialLinks.youtube}
+                            onChange={e => setSocialLinks({...socialLinks, youtube: e.target.value})}
+                            className="w-full p-2 border rounded"
+                            placeholder="https://youtube.com/..."
+                        />
+                    ) : (
+                        <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                            <span className="material-icons-outlined text-red-600">play_circle</span>
+                            <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">{socialLinks.youtube}</a>
+                        </div>
+                    )}
+                </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Address</label>
-                        {isEditing ? (
-                            <textarea
-                                value={socialLinks.address}
-                                onChange={e => setSocialLinks({...socialLinks, address: e.target.value})}
-                                className="w-full p-2 border rounded h-20 resize-none"
-                            />
-                        ) : (
-                            <div className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
-                                <span className="material-icons-outlined text-red-500 mt-1">location_on</span>
-                                <span>{socialLinks.address}</span>
-                            </div>
-                        )}
-                    </div>
+                <div>
+                    <label className="block text-sm font-medium mb-2">Facebook Link</label>
+                    {isEditing ? (
+                        <input
+                            type="url"
+                            value={socialLinks.facebook}
+                            onChange={e => setSocialLinks({...socialLinks, facebook: e.target.value})}
+                            className="w-full p-2 border rounded"
+                            placeholder="https://facebook.com/..."
+                        />
+                    ) : (
+                        <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800 rounded">
+                            <span className="material-icons-outlined text-blue-600">facebook</span>
+                            <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">{socialLinks.facebook}</a>
+                        </div>
+                    )}
                 </div>
             </div>
 
             {isEditing && (
                 <div className="mt-6 flex justify-end gap-3">
-                    <button 
+                    <button
                         onClick={() => setIsEditing(false)}
                         className="btn btn-secondary"
                         disabled={isSubmitting}
                     >
                         Cancel
                     </button>
-                    <button 
+                    <button
                         onClick={handleSave}
                         className="btn btn-primary"
                         disabled={isSubmitting}
@@ -1459,7 +1434,7 @@ const UserRoleManagement: React.FC<PageProps> = ({ setModal }) => {
 };
 
 // --- Main Form Management Page Component ---
-const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotifications }) => {
+const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotifications, user }) => {
     const [activeTab, setActiveTab] = useState('templates');
 
     const tabs = [
@@ -1476,7 +1451,7 @@ const FormManagement: React.FC<PageProps> = ({ setModal, theme, refreshNotificat
             case 'billing': return <BillingManagement setModal={setModal} theme={theme} />;
             case 'notifications': return <NotificationManagement setModal={setModal} theme={theme} refreshNotifications={refreshNotifications} />;
             case 'roles': return <UserRoleManagement setModal={setModal} theme={theme} />;
-            case 'social': return <SocialLinksManagement setModal={setModal} theme={theme} />;
+            case 'social': return <SocialLinksManagement setModal={setModal} theme={theme} user={user} />;
             default: return null;
         }
     };

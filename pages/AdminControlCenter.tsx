@@ -16,6 +16,7 @@ interface DashboardData {
     activeSubscriptions: number;
     recentMerges: MergeLog[];
     totalRevenue?: number;
+    apiCallsLast30Days?: number[];
 }
 
 // Stat Card Component
@@ -191,14 +192,12 @@ const UserForm: React.FC<{
     const [formData, setFormData] = useState<Partial<User>>({
         name: '', email: '', role: 'User', status: 'Active', accessPage: [], plan: 'Free', inactiveDate: '', profilePictureId: undefined, ...user,
     });
-    const [newProfilePicture, setNewProfilePicture] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const initialData = { name: '', email: '', role: 'User', status: 'Active', accessPage: [], plan: 'Free', inactiveDate: '', profilePictureId: undefined, profilePictureUrl: undefined, ...user };
         setFormData(initialData);
-        setNewProfilePicture(null);
+
         if (initialData.profilePictureUrl) {
             setImagePreview(initialData.profilePictureUrl);
         } else if (initialData.profilePictureId) {
@@ -208,13 +207,7 @@ const UserForm: React.FC<{
         }
     }, [user]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setNewProfilePicture(file);
-            setImagePreview(URL.createObjectURL(file));
-        }
-    };
+
 
     const handleAccessPageChange = (pageId: string, checked: boolean) => {
         const currentPages = Array.isArray(formData.accessPage) ? formData.accessPage : (formData.accessPage || '').split(',').map(p => p.trim()).filter(Boolean);
@@ -233,7 +226,7 @@ const UserForm: React.FC<{
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(formData, newProfilePicture);
+        onSave(formData, null);
     };
 
     return (
@@ -271,13 +264,10 @@ const UserForm: React.FC<{
                             <label className="block text-sm font-medium mb-2">Profile Picture</label>
                             <img
                                 src={imagePreview || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'New User')}&background=random`}
-                                className="w-32 h-32 rounded-full object-cover mx-auto mb-2 border-2 border-dashed border-gray-300 dark:border-gray-600"
+                                className="w-32 h-32 rounded-full object-cover mx-auto mb-2"
                                 alt="Profile"
                             />
-                            <button type="button" onClick={() => fileInputRef.current?.click()} className="btn btn-secondary text-sm">
-                                Upload Image
-                            </button>
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Gmail Profile Only</p>
                         </div>
                     </div>
                     <div className="mt-4"><h3 className="text-sm font-medium mb-2">Access Pages</h3>
@@ -312,7 +302,7 @@ const AdminControlCenter: React.FC<PageProps> = ({ theme, setModal, user }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'overview' | 'users'>('overview');
-    const [filters, setFilters] = useState({ search: '', role: '', status: '' });
+    const [filters, setFilters] = useState({ search: '', role: '', status: '', plan: '' });
     const [sort, setSort] = useState<{ column: keyof User, direction: 'asc' | 'desc' }>({ column: 'joinDate', direction: 'desc' });
     const [pagination, setPagination] = useState({ currentPage: 1, rowsPerPage: 10 });
     const [isModalOpen, setIsModalOpen] = useState(false);

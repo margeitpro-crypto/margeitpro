@@ -151,9 +151,15 @@ const Billing: React.FC<PageProps> = ({ navigateTo, user }) => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full overflow-hidden">
-                                {user.picture ? (
+                                {user.profilePictureUrl ? (
                                     <img 
-                                        src={user.picture} 
+                                        src={user.profilePictureUrl} 
+                                        alt={user.name} 
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : user.profilePictureId ? (
+                                    <img 
+                                        src={`https://lh3.googleusercontent.com/d/${user.profilePictureId}`} 
                                         alt={user.name} 
                                         className="w-full h-full object-cover"
                                     />

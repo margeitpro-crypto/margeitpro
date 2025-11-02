@@ -10,7 +10,7 @@ type SettingsTab = 'profile' | 'security' | 'notifications' | 'preferences' | 'b
 
 const Settings: React.FC<PageProps> = ({ setModal, user }) => {
     const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
-    const [isUploading, setIsUploading] = useState(false);
+
     const [notificationSettings, setNotificationSettings] = useState({
         mergeCompletion: true,
         systemUpdates: true,
@@ -26,29 +26,13 @@ const Settings: React.FC<PageProps> = ({ setModal, user }) => {
         autoSave: true,
         compactMode: false
     });
-    const fileInputRef = useRef<HTMLInputElement>(null);
+
 
     // The user object is now passed directly via props.
     // No need for local state for the user, loading, or error.
     const currentUser = user;
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0] && currentUser && currentUser.id) {
-            const file = e.target.files[0];
-            setIsUploading(true);
-            try {
-                const uploadResult = await uploadFile(file);
-                await updateUserByUser(currentUser, { profilePictureUrl: uploadResult.url });
-                // Note: The profile picture will visually update on the next page load/refresh
-                // as this component cannot directly mutate the state in App.tsx.
-                alert("Profile picture updated successfully! The change will be visible on your next session.");
-            } catch (err) {
-                alert(`Error uploading file: ${(err as Error).message}`);
-            } finally {
-                setIsUploading(false);
-            }
-        }
-    };
+
 
     const planDetails: { [key in User['plan']]: { color: string } } = {
         Free: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
@@ -127,23 +111,13 @@ const Settings: React.FC<PageProps> = ({ setModal, user }) => {
             <div className="card p-6">
                 <h3 className="text-lg font-semibold mb-4 text-fb-text dark:text-fb-text-dark">Profile Information</h3>
                 <div className="flex items-center gap-6 mb-6">
-                    <div className="relative group">
+                    <div>
                         <img 
                             src={getUserAvatar(currentUser)} 
                             className="w-20 h-20 rounded-full object-cover" 
                             alt={currentUser.name}
                         />
-                        <button 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-center justify-center rounded-full transition-opacity duration-300"
-                            disabled={isUploading}
-                        >
-                            {isUploading 
-                                ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div> 
-                                : <span className="material-icons-outlined text-white opacity-0 group-hover:opacity-100 transition-opacity">photo_camera</span>
-                            }
-                        </button>
-                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                        <p className="text-xs text-fb-secondary dark:text-fb-secondary-dark mt-2 text-center">Gmail Profile</p>
                     </div>
                     <div>
                         <h4 className="text-xl font-bold text-fb-text dark:text-fb-text-dark">{currentUser.name}</h4>

@@ -215,29 +215,25 @@ const AppContent: React.FC = () => {
     }
     
     return (
-        <div className={`app-layout theme-${theme} h-screen overflow-hidden bg-fb-background`}>
+        <div className={`app-layout theme-${theme} flex h-screen overflow-hidden`}>
             <div className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? 'block' : 'hidden'} bg-black/30`} onClick={() => setSidebarOpen(false)}></div>
-            
-            <div className="flex h-full">
-                <div className={`fixed lg:static top-0 left-0 h-full z-50 lg:z-auto transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
-                    <Sidebar user={user} activePage={currentPage} navigateTo={navigateTo} />
-                </div>
-                
-                <div className="flex flex-col flex-1 h-full overflow-hidden">
-                    <Header
-                        sidebarOpen={sidebarOpen}
-                        setSidebarOpen={setSidebarOpen}
-                        toggleTheme={toggleTheme}
-                        theme={theme}
-                        user={user}
-                        navigateTo={navigateTo}
-                        currentPageLabel={currentPageLabel}
-                        notifications={notifications}
-                    />
-                    <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-fb-background">
-                        {pageToRender}
-                    </main>
-                </div>
+            <div className={`fixed top-0 left-0 h-full z-50 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+                <Sidebar user={user} activePage={currentPage} navigateTo={navigateTo} />
+            </div>
+            <div className="flex flex-col flex-1 h-screen overflow-hidden lg:ml-64">
+                <Header
+                    sidebarOpen={sidebarOpen}
+                    setSidebarOpen={setSidebarOpen}
+                    toggleTheme={toggleTheme}
+                    theme={theme}
+                    user={user}
+                    navigateTo={navigateTo}
+                    currentPageLabel={currentPageLabel}
+                    notifications={notifications}
+                />
+                <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-light-background">
+                    {pageToRender}
+                </main>
             </div>
 
             {/* Modal Renderer */}

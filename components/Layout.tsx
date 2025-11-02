@@ -74,11 +74,23 @@ const hasAccess = (accessiblePages: string[], requiredPages: string[]) => {
 
 // --- Components ---
 
-const SocialIcons: React.FC<{ className?: string }> = ({ className }) => (
+interface SocialLinks {
+    whatsapp?: string;
+    youtube?: string;
+    facebook?: string;
+}
+
+const SocialIcons: React.FC<{ className?: string; links?: SocialLinks }> = ({ className, links = {} }) => (
     <div className={`flex items-center gap-2 ${className}`}>
-        <a href="https://whatsapp.com" target="_blank" rel="noopener noreferrer" className="material-icons-outlined cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors text-green-500 dark:text-green-400" aria-label="WhatsApp">chat</a>
-        <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="material-icons-outlined cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors text-red-500 dark:text-red-400" aria-label="YouTube">play_circle</a>
-        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="material-icons-outlined cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors text-blue-600 dark:text-blue-500" aria-label="Facebook">facebook</a>
+        {links.whatsapp && (
+            <a href={links.whatsapp} target="_blank" rel="noopener noreferrer" className="material-icons-outlined cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors text-green-500 dark:text-green-400" aria-label="WhatsApp">chat</a>
+        )}
+        {links.youtube && (
+            <a href={links.youtube} target="_blank" rel="noopener noreferrer" className="material-icons-outlined cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors text-red-500 dark:text-red-400" aria-label="YouTube">play_circle</a>
+        )}
+        {links.facebook && (
+            <a href={links.facebook} target="_blank" rel="noopener noreferrer" className="material-icons-outlined cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors text-blue-600 dark:text-blue-500" aria-label="Facebook">facebook</a>
+        )}
     </div>
 );
 
@@ -125,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activePage, navigateTo }
             </div>
             <div className="p-4 border-t border-inherit flex-shrink-0">
                 <div className="text-center text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Contact Support</div>
-                <SocialIcons className="justify-center" />
+                <SocialIcons className="justify-center" links={{ whatsapp: 'https://wa.me/9827792360', youtube: 'https://youtube.com/@margeitpro', facebook: 'https://facebook.com/margeitpro' }} />
             </div>
         </aside>
     );
@@ -168,14 +180,14 @@ export const Header: React.FC<HeaderProps> = ({ setSidebarOpen, toggleTheme, the
             </div>
 
             <div className="flex items-center gap-2">
-                <SocialIcons className="hidden md:flex" />
+                <SocialIcons className="hidden md:flex" links={{ whatsapp: 'https://wa.me/9827792360', youtube: 'https://youtube.com/@margeitpro', facebook: 'https://facebook.com/margeitpro' }} />
                 <div className="hidden md:block h-6 w-px bg-gray-200 dark:bg-slate-700 mx-2" />
-                
+
                 <div className="relative" ref={notifRef}>
                     <span onClick={() => setNotifOpen(p => !p)} className="material-icons-outlined cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-yellow-500 dark:text-yellow-400 relative transition-all duration-200 hover:scale-110">
                         notifications
                         {notifications.filter(n => n.isNew).length > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold notification-badge animate-pulse">
+                            <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center font-bold notification-badge animate-pulse">
                                 {notifications.filter(n => n.isNew).length}
                             </span>
                         )}

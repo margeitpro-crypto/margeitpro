@@ -836,3 +836,78 @@ input[type="radio"]:hover {
   border-color: #1877F2;
   background-color: #374151;
 }
+/* Admin Panel Professional Styles */
+.admin-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-effect {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-admin {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+.btn-admin:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+}
+
+/* Enhanced Sidebar */
+.sidebar {
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+.dark .sidebar {
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Enhanced Menu Items */
+.menu-item:hover {
+  transform: translateX(4px) scale(1.02) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .menu-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.menu-active {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3) !important;
+  transform: translateX(4px) scale(1.02) !important;
+}
+
+.dark .menu-active {
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
+}
+
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}

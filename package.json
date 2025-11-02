@@ -13,11 +13,12 @@
     "install-deps": "npm install"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.16",
     "chart.js": "^4.5.1",
     "firebase": "^9.23.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-chartjs-2": "^5.2.0"
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
