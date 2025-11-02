@@ -22,4 +22,6 @@ View your app in AI Studio: https://ai.studio/apps/drive/1pgKFvggC8uOz5hvldGAvcL
 =======
 # margeitpro-gas
 MargeItPro GAS
+
+[![Netlify Status](https://api.netlify.com/api/v1/badges/10073e77-4263-4134-8e4f-36e7cec8bba6/deploy-status)](https://app.netlify.com/projects/margeitpro/deploys)
 >>>>>>> a678ded38fdc4ffaaba5b3948ca8a42fc9c50e5a
