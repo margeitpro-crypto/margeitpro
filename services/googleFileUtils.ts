@@ -102,21 +102,8 @@ export const getDownloadUrl = (fileInfo: GoogleFileInfo | null, format: string):
         return null;
     }
 
-    // Determine file type based on format - format determines the export endpoint
-    let useSlidesEndpoint = false;
-
-    // Presentation formats should use slides endpoint
-    if (['pptx', 'odp'].includes(format.toLowerCase())) {
-        useSlidesEndpoint = true;
-    }
-    // Document formats should use docs endpoint
-    else if (['docx', 'rtf', 'odt'].includes(format.toLowerCase())) {
-        useSlidesEndpoint = false;
-    }
-    // For neutral formats like pdf, txt, use the original file type
-    else {
-        useSlidesEndpoint = fileInfo.isSlides;
-    }
+    // ✅ Slides भए presentation endpoint, नभए document endpoint
+    const useSlidesEndpoint = fileInfo.fileType === 'presentation' || fileInfo.isSlides === true;
 
     const baseUrl = useSlidesEndpoint
         ? `https://docs.google.com/presentation/d/${fileInfo.fileId}/export`
