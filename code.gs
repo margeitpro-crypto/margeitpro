@@ -14,7 +14,12 @@
 // 🔹 CORS HANDLER //
 //////////////////////
 function setCorsHeaders(output) {
-  return output.setMimeType(ContentService.MimeType.JSON);
+  return output
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader('Access-Control-Allow-Origin', '*')
+    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    .setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+    .setHeader('Access-Control-Max-Age', '3600');
 }
 
 function doOptions(e) {
@@ -55,6 +60,14 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON)
     );
   }
+}
+
+function doGet(e) {
+  // Handle GET requests for health checks or simple responses
+  return setCorsHeaders(
+    ContentService.createTextOutput(JSON.stringify({ status: 'ok', message: 'Google Apps Script CORS proxy is running' }))
+      .setMimeType(ContentService.MimeType.JSON)
+  );
 }
 
 /////////////////////////////
@@ -463,3 +476,41 @@ function replaceSlidesPlaceholders(pres, data, slide) {
     }
   });
 }
+
+/*
+ * FRONTEND EXAMPLES:
+ * 
+ * Using fetch() to call the script:
+ * 
+ * // POST request example
+ * const response = await fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+ *   method: 'POST',
+ *   headers: {
+ *     'Content-Type': 'application/json',
+ *   },
+ *   body: JSON.stringify({
+ *     spreadsheetId: 'YOUR_SPREADSHEET_ID',
+ *     sheetName: 'Sheet1',
+ *     startRow: '2',
+ *     endRow: '5',
+ *     templateId: 'YOUR_TEMPLATE_ID',
+ *     mode: 'docs',
+ *     action: 'merge',
+ *     runtype: 'custom'
+ *   })
+ * });
+ * 
+ * const data = await response.json();
+ * console.log(data);
+ * 
+ * // GET request example (for health check)
+ * const healthResponse = await fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+ *   method: 'GET',
+ *   headers: {
+ *     'Content-Type': 'application/json',
+ *   }
+ * });
+ * 
+ * const healthData = await healthResponse.json();
+ * console.log(healthData);
+ */
