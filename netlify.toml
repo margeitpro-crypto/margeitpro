@@ -1,0 +1,12 @@
+[build]
+  functions = "netlify/functions"
+  publish = "dist"
+  node_version = "20"
+
+[[redirects]]
+  from = "/gas-proxy"
+  to = "/.netlify/functions/gas-proxy"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"

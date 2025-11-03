@@ -1,0 +1,5 @@
+{
+  "name": "MargeitPro3",
+  "description": "An admin panel to manage users, view system health, and oversee merge operations for the MargeitPro application. It includes dashboards, user management, logging, and settings.",
+  "requestFramePermissions": []
+}
