@@ -4,13 +4,17 @@ import { BillingPlan } from '../types';
 
 // Reusable components for the landing page
 
-const NavLink: React.FC<{ href: string, children: React.ReactNode }> = ({ href, children }) => {
+const NavLink: React.FC<{ href: string, children: React.ReactNode, onClick?: () => void }> = ({ href, children, onClick }) => {
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-        const targetId = href.replace('#', '');
-        const targetElement = document.getElementById(targetId);
-        if (targetElement) {
-            targetElement.scrollIntoView({ behavior: 'smooth' });
+        if (onClick) {
+            onClick();
+        } else {
+            const targetId = href.replace('#', '');
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
         }
     };
 
@@ -106,7 +110,7 @@ const ReviewCard: React.FC<{ quote: string, name: string, role: string, avatar: 
 );
 
 
-const HomePage: React.FC = () => {
+const HomePage: React.FC<{ navigateTo?: (page: string) => void }> = ({ navigateTo }) => {
     const featuresRef = useRef<HTMLElement>(null);
     const planRef = useRef<HTMLElement>(null);
     const howItWorksRef = useRef<HTMLElement>(null);
@@ -174,12 +178,15 @@ const HomePage: React.FC = () => {
                         </a>
                         <nav className="hidden md:flex items-center gap-8">
                             <button onClick={() => scrollToSection(featuresRef)} className="text-slate-600 hover:text-slate-900 transition-colors font-medium cursor-pointer">Features</button>
-                            <button onClick={() => scrollToSection(planRef)} className="text-slate-600 hover:text-slate-900 transition-colors font-medium cursor-pointer">Plan</button>
+                            <button onClick={() => scrollToSection(planRef)} className="text-slate-600 hover:text-slate-900 transition-colors font-medium cursor-pointer">Pricing</button>
                             <button onClick={() => scrollToSection(howItWorksRef)} className="text-slate-600 hover:text-slate-900 transition-colors font-medium cursor-pointer">How It Works</button>
                             <button onClick={() => scrollToSection(useCasesRef)} className="text-slate-600 hover:text-slate-900 transition-colors font-medium cursor-pointer">Use Cases</button>
                         </nav>
                         <div className="flex items-center gap-2 sm:gap-4">
                             <a href="#login" className="hidden sm:inline-block text-slate-600 hover:text-slate-900 font-semibold transition-colors">Login</a>
+                            <CtaButton href="#login" primary className="px-4 py-2 text-sm">
+                                Get Started
+                            </CtaButton>
                         </div>
                     </div>
                 </div>
@@ -187,30 +194,68 @@ const HomePage: React.FC = () => {
 
             <main>
                 {/* Hero Section */}
-                <section className="pt-40 pb-16 text-center bg-slate-50">
+                <section className="pt-40 pb-16 text-center bg-gradient-to-br from-indigo-50 to-blue-100">
                     <div className="max-w-4xl mx-auto px-6 lg:px-8">
-                        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900">
-                            Automate Your Document Creation
+                        <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                            <span className="material-icons-outlined text-lg">auto_awesome</span>
+                            <span>Trusted by 500+ Schools & Companies</span>
+                        </div>
+                        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 mb-6">
+                            Automate Your Document Creation <span className="text-indigo-600">Effortlessly</span>
                         </h1>
-                        <p className="mt-6 text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">
-                            Marge It Pro effortlessly merges data from Google Sheets into beautiful Google Docs and Slides, saving you hours of manual work.
+                        <p className="mt-6 text-lg md:text-xl text-slate-700 max-w-3xl mx-auto">
+                            Marge It Pro seamlessly merges data from Google Sheets into beautiful Google Docs and Slides, 
+                            saving you <span className="font-bold text-indigo-600">hours of manual work</span> every week.
                         </p>
                         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <CtaButton href="#login" primary>
-                                Get Started for Free <span className="material-icons-outlined text-xl ml-1">arrow_forward</span>
+                            <CtaButton href="#login" primary className="text-lg px-8 py-4">
+                                Start Free Trial <span className="material-icons-outlined text-xl ml-2">arrow_forward</span>
                             </CtaButton>
-                             <CtaButton href="#features">
-                                Learn More
+                            <CtaButton href="#features" className="text-lg px-8 py-4">
+                                See How It Works
                             </CtaButton>
+                        </div>
+                        <div className="mt-12 relative">
+                            <div className="absolute inset-0 bg-indigo-200 rounded-2xl transform rotate-3"></div>
+                            <div className="relative bg-white rounded-2xl shadow-xl border border-slate-200 p-1">
+                                <img 
+                                    src="https://placehold.co/1200x600/4f46e5/ffffff?text=Merge+Documents+in+Seconds" 
+                                    alt="Marge It Pro Dashboard" 
+                                    className="w-full h-auto rounded-xl object-cover"
+                                    onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9IiM0ZjQ2ZTUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHRleHQgeD0iNjAwIiB5PSIzMDAiIGZvbnQtc2l6ZT0iMzIiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk1lcmdlIERvY3VtZW50cyBpbiBTZWNvbmRzPC90ZXh0Pjwvc3ZnPg=='}
+                                />
+                            </div>
                         </div>
                     </div>
                 </section>
 
+                {/* Stats Section */}
+                <Section isGray>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                        <div>
+                            <div className="text-3xl md:text-4xl font-bold text-indigo-600">10K+</div>
+                            <div className="text-slate-600 mt-2">Documents Created</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl md:text-4xl font-bold text-indigo-600">500+</div>
+                            <div className="text-slate-600 mt-2">Trusted Users</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl md:text-4xl font-bold text-indigo-600">99.9%</div>
+                            <div className="text-slate-600 mt-2">Uptime</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl md:text-4xl font-bold text-indigo-600">24/7</div>
+                            <div className="text-slate-600 mt-2">Support</div>
+                        </div>
+                    </div>
+                </Section>
+
                 {/* Features Section */}
                 <Section id="features" ref={featuresRef}>
                     <SectionTitle
-                        title="Why Choose Marge It Pro?"
-                        subtitle="Discover the powerful features that make document automation a breeze."
+                        title="Powerful Features for Effortless Automation"
+                        subtitle="Discover how Marge It Pro transforms your document workflow with cutting-edge technology."
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                          <FeatureCard icon="grid_on" title="Sheet to Slides" description="Effortlessly merge data from Google Sheets into stunning presentations in Google Slides." color="text-blue-600" />
@@ -218,13 +263,143 @@ const HomePage: React.FC = () => {
                          <FeatureCard icon="layers" title="Template Management" description="Manage your Google Docs and Slides templates directly within the application for easy access." color="text-purple-600" />
                          <FeatureCard icon="auto_awesome" title="AI-Powered Assistance" description="Utilize GenAI to suggest templates, match data fields, and auto-populate documents." color="text-orange-600" />
                     </div>
+                    
+                    {/* Additional Feature Highlights */}
+                    <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-2xl border border-indigo-100">
+                            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                                <span className="material-icons-outlined text-indigo-600 text-2xl">bolt</span>
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 mb-2">Lightning Fast</h3>
+                            <p className="text-slate-600">Generate hundreds of documents in seconds, not hours. Our optimized system ensures rapid processing.</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-2xl border border-indigo-100">
+                            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                                <span className="material-icons-outlined text-indigo-600 text-2xl">security</span>
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 mb-2">Secure & Private</h3>
+                            <p className="text-slate-600">Your data never leaves Google's secure environment. We only facilitate the merging process.</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-2xl border border-indigo-100">
+                            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                                <span className="material-icons-outlined text-indigo-600 text-2xl">sync</span>
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 mb-2">Seamless Integration</h3>
+                            <p className="text-slate-600">Works perfectly with your existing Google Workspace tools without any disruption.</p>
+                        </div>
+                    </div>
+                </Section>
+
+                {/* How it Works Section */}
+                <Section id="how-it-works" isGray ref={howItWorksRef}>
+                    <SectionTitle
+                        title="Simple Steps to Success"
+                        subtitle="Transform your document workflow in just three easy steps."
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                         <StepCard number="1" title="Connect Your Data" description="Provide the ID of your Google Sheet and specify the data range you want to use."/>
+                         <StepCard number="2" title="Choose Your Template" description="Select a pre-made Google Docs or Slides template, or use your own by providing its ID."/>
+                         <StepCard number="3" title="Merge with a Click" description="Click 'Marge It' and let our system generate your documents or presentations automatically."/>
+                    </div>
+                    
+                    {/* Process Visualization */}
+                    <div className="mt-16 bg-white rounded-2xl border border-slate-200 p-8">
+                        <h3 className="text-2xl font-bold text-center text-slate-900 mb-8">See It In Action</h3>
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                            <div className="flex-1 text-center">
+                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span className="material-icons-outlined text-green-600 text-4xl">grid_on</span>
+                                </div>
+                                <h4 className="font-bold text-lg mb-2">Your Data</h4>
+                                <p className="text-slate-600 text-sm">Google Sheet with student information</p>
+                            </div>
+                            <div className="text-indigo-500">
+                                <span className="material-icons-outlined text-4xl">arrow_forward</span>
+                            </div>
+                            <div className="flex-1 text-center">
+                                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span className="material-icons-outlined text-blue-600 text-4xl">description</span>
+                                </div>
+                                <h4 className="font-bold text-lg mb-2">Your Template</h4>
+                                <p className="text-slate-600 text-sm">Certificate or report template</p>
+                            </div>
+                            <div className="text-indigo-500">
+                                <span className="material-icons-outlined text-4xl">arrow_forward</span>
+                            </div>
+                            <div className="flex-1 text-center">
+                                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span className="material-icons-outlined text-purple-600 text-4xl">file_copy</span>
+                                </div>
+                                <h4 className="font-bold text-lg mb-2">Generated Files</h4>
+                                <p className="text-slate-600 text-sm">Personalized documents for each entry</p>
+                            </div>
+                        </div>
+                    </div>
+                </Section>
+
+                {/* Use Cases/Roles Section */}
+                <Section id="use-cases" ref={useCasesRef}>
+                    <SectionTitle
+                        title="Perfect for Every Industry"
+                        subtitle="From education to business, Marge It Pro adapts to your unique needs."
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                         <RoleCard icon="school" title="Educators" description="Create custom certificates, report cards, and personalized feedback for hundreds of students in minutes." color="text-blue-600" />
+                         <RoleCard icon="work" title="Business Professionals" description="Generate sales proposals, contracts, invoices, and client reports with zero manual effort." color="text-green-600" />
+                         <RoleCard icon="groups" title="HR Teams" description="Automate offer letters, employee contracts, onboarding documents, and performance reviews." color="text-purple-600" />
+                    </div>
+                    
+                    {/* Industry Specific Benefits */}
+                    <div className="mt-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
+                        <div className="max-w-4xl mx-auto">
+                            <h3 className="text-2xl font-bold mb-6 text-center">Why Industry Leaders Choose Marge It Pro</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="mt-1 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span className="material-icons-outlined text-lg">check</span>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold mb-1">Save 10+ Hours Weekly</h4>
+                                        <p className="opacity-90">Automate repetitive document creation tasks and focus on strategic work.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <div className="mt-1 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span className="material-icons-outlined text-lg">check</span>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold mb-1">Zero Errors</h4>
+                                        <p className="opacity-90">Eliminate manual data entry mistakes with automated merging.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <div className="mt-1 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span className="material-icons-outlined text-lg">check</span>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold mb-1">Professional Results</h4>
+                                        <p className="opacity-90">Create consistent, branded documents that impress clients and stakeholders.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <div className="mt-1 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span className="material-icons-outlined text-lg">check</span>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold mb-1">Scalable Solution</h4>
+                                        <p className="opacity-90">Handle projects of any size, from 10 to 10,000+ documents.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </Section>
 
                 {/* Plan Section */}
                 <Section id="plan" isGray ref={planRef}>
                     <SectionTitle
-                        title="Choose Your Plan"
-                        subtitle="Select the perfect plan for your document automation needs."
+                        title="Simple, Transparent Pricing"
+                        subtitle="Choose the plan that fits your document automation needs."
                     />
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto" id="billing-plans-container">
                         {loadingPlans ? (
@@ -237,9 +412,9 @@ const HomePage: React.FC = () => {
                             </div>
                         ) : (
                             billingPlans.map((plan, index) => (
-                                <div key={plan.id} className={`p-8 rounded-2xl border shadow-sm text-center ${index === 1 ? 'bg-indigo-600 border-indigo-600 shadow-lg text-white relative' : 'bg-white border-slate-200'}`}>
+                                <div key={plan.id} className={`p-8 rounded-2xl border shadow-sm text-center relative overflow-hidden ${index === 1 ? 'bg-gradient-to-br from-indigo-600 to-purple-700 border-indigo-600 shadow-lg text-white transform scale-105 z-10' : 'bg-white border-slate-200'}`}>
                                     {index === 1 && (
-                                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold">Most Popular</div>
+                                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-slate-900 px-4 py-1 rounded-full text-sm font-semibold">Most Popular</div>
                                     )}
                                     <h3 className={`text-2xl font-bold mb-4 ${index === 1 ? 'text-white' : 'text-slate-900'}`}>{plan.name}</h3>
                                     <div className={`text-4xl font-bold mb-2 ${index === 1 ? 'text-white' : 'text-slate-900'}`}>
@@ -248,13 +423,16 @@ const HomePage: React.FC = () => {
                                     </div>
                                     <ul className={`mb-6 space-y-2 ${index === 1 ? 'opacity-90' : 'text-slate-600'}`}>
                                         {plan.features.map((feature, idx) => (
-                                            <li key={idx}>{feature}</li>
+                                            <li key={idx} className="flex items-start gap-2">
+                                                <span className={`material-icons-outlined text-sm mt-0.5 ${index === 1 ? 'text-green-300' : 'text-green-500'}`}>check_circle</span>
+                                                {feature}
+                                            </li>
                                         ))}
                                     </ul>
                                     <CtaButton
                                         href="#login"
                                         primary={index !== 1}
-                                        className={`w-full ${index === 1 ? 'bg-white text-indigo-600 hover:bg-slate-50' : ''}`}
+                                        className={`w-full ${index === 1 ? 'bg-white text-indigo-600 hover:bg-slate-50 font-bold' : ''}`}
                                     >
                                         {plan.buttonText}
                                     </CtaButton>
@@ -262,204 +440,160 @@ const HomePage: React.FC = () => {
                             ))
                         )}
                     </div>
-                </Section>
-
-                {/* How it Works Section */}
-                 <Section id="how-it-works" isGray ref={howItWorksRef}>
-                    <SectionTitle
-                        title="Simple Steps to Success"
-                        subtitle="Just three easy steps to automate your workflow."
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                         <StepCard number="1" title="Connect Your Data" description="Provide the ID of your Google Sheet and specify the data range you want to use."/>
-                         <StepCard number="2" title="Choose Your Template" description="Select a pre-made Google Docs or Slides template, or use your own by providing its ID."/>
-                         <StepCard number="3" title="Merge with a Click" description="Click 'Marge It' and let our system generate your documents or presentations automatically."/>
-                    </div>
-                </Section>
-
-                {/* Use Cases/Roles Section */}
-                <Section id="use-cases" ref={useCasesRef}>
-                    <SectionTitle
-                        title="Perfect for Any Role"
-                        subtitle="From sales to education, Marge It Pro adapts to your needs."
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                         <RoleCard icon="work" title="Sales Teams" description="Generate personalized sales proposals, contracts, and quotes for each client instantly." color="text-blue-600" />
-                         <RoleCard icon="groups" title="HR Departments" description="Automate the creation of offer letters, employee contracts, and onboarding documents." color="text-green-600" />
-                         <RoleCard icon="school" title="Educators" description="Create custom certificates, report cards, and personalized feedback for students in bulk." color="text-purple-600" />
+                    
+                    {/* FAQ Section */}
+                    <div className="mt-16 max-w-4xl mx-auto">
+                        <h3 className="text-2xl font-bold text-center text-slate-900 mb-8">Frequently Asked Questions</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                <h4 className="font-bold text-lg mb-2">Is my data secure?</h4>
+                                <p className="text-slate-600">Absolutely. We never store your document data. All processing happens in real-time through Google's secure APIs.</p>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                <h4 className="font-bold text-lg mb-2">Can I use my own templates?</h4>
+                                <p className="text-slate-600">Yes! You can use any Google Docs or Slides template. Just provide the document ID and we'll do the rest.</p>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                <h4 className="font-bold text-lg mb-2">How many documents can I create?</h4>
+                                <p className="text-slate-600">Our Pro plan supports unlimited documents. Free plan includes 100 merges per month.</p>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                <h4 className="font-bold text-lg mb-2">Do I need technical skills?</h4>
+                                <p className="text-slate-600">Not at all. Our intuitive interface makes document automation accessible to everyone.</p>
+                            </div>
+                        </div>
                     </div>
                 </Section>
 
                 {/* Testimonials Section */}
-                <Section isGray>
+                <Section>
                      <SectionTitle
-                        title="Loved by Professionals"
-                        subtitle="Hear what our users have to say about Marge It Pro."
+                        title="Loved by Professionals Worldwide"
+                        subtitle="Join thousands of satisfied users who have transformed their document workflow."
                     />
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
                         <TestimonialCard
-                            quote="Marge It Pro has saved our team countless hours. What used to take a full day of copying and pasting now takes minutes. It's a game-changer for our workflow!"
+                            quote="Marge It Pro has saved our team countless hours. What used to take a full day of copying and pasting now takes minutes. As both a Designer & Developer and HR Executive, I use it for creating project documentation and onboarding new employees. It's a game-changer for our workflow!"
                             name="Man Singh Rana"
-                            role="Designer & developer"
+                            role="Designer, Developer & HR Executive"
                             avatar="https://lh3.googleusercontent.com/pw/AP1GczNBafUwK_kk9w-_61hgYeiqwWXCg-0BLU3w88BvcUAed3ts02C4ylZ6f5EITTn5Q71hvH7Rv0H77Guay5eSDaOroRpyhlYXQqcgf6Sst1a1KYyoLg=w2400"
                         />
-                         <TestimonialCard
-                            quote="Onboarding new employees is so much smoother now. We can generate all necessary documents with a single click. Highly recommended for any HR professional."
-                            name="Man Singh Rana"
-                            role="HR Executive"
-                            avatar="https://lh3.googleusercontent.com/pw/AP1GczNBafUwK_kk9w-_61hgYeiqwWXCg-0BLU3w88BvcUAed3ts02C4ylZ6f5EITTn5Q71hvH7Rv0H77Guay5eSDaOroRpyhlYXQqcgf6Sst1a1KYyoLg=w2400"
+                        <TestimonialCard
+                            quote="As an educator, I create hundreds of report cards each semester. Marge It Pro has reduced my workload by 80% and eliminated all data entry errors."
+                            name="Dr. Priya Sharma"
+                            role="Principal, Delhi Public School"
+                            avatar="https://randomuser.me/api/portraits/women/44.jpg"
                         />
                     </div>
-                </Section>
-
-                {/* Reviews Section */}
-                <Section>
-                    <SectionTitle
-                        title="Trusted by Leading Schools & Companies"
-                        subtitle="See how educational institutions and businesses are transforming their document workflows."
-                    />
-
-                    {/* School Reviews */}
-                    <div className="mb-16">
-                        <h3 className="text-2xl font-bold text-slate-900 text-center mb-8 flex items-center justify-center gap-2">
-                            <span className="material-icons-outlined text-4xl text-blue-600">school</span> Popular Schools
-                        </h3>
-                        <div ref={schoolsRef} className="overflow-x-auto scrollbar-hide">
-                            <div className="flex gap-6 pb-4" style={{width: 'max-content'}}>
-                                <ReviewCard
-                                    quote="Marge It Pro revolutionized our certificate generation process. We now create personalized certificates for hundreds of students in minutes instead of days."
-                                    name="Dr. Priya Patel"
-                                    role="Principal, Delhi Public School"
-                                    avatar="https://randomuser.me/api/portraits/women/32.jpg"
-                                    rating={5}
-                                />
-                                <ReviewCard
-                                    quote="The automated report card system has saved our teachers countless hours. The integration with Google Workspace is seamless."
-                                    name="Mr. Ramesh Kumar"
-                                    role="Vice Principal, St. Mary's School"
-                                    avatar="https://randomuser.me/api/portraits/men/45.jpg"
-                                    rating={5}
-                                />
-                                <ReviewCard
-                                    quote="From admission letters to progress reports, everything is now automated. Our administrative workload has reduced by 80%."
-                                    name="Ms. Anita Singh"
-                                    role="Administrative Head, Modern School"
-                                    avatar="https://randomuser.me/api/portraits/women/28.jpg"
-                                    rating={5}
-                                />
-                                <ReviewCard
-                                    quote="The AI-powered template suggestions are incredible. It understands our needs and provides perfect document layouts."
-                                    name="Dr. Vikram Sharma"
-                                    role="Director, Cambridge School"
-                                    avatar="https://randomuser.me/api/portraits/men/50.jpg"
-                                    rating={5}
-                                />
-                                <ReviewCard
-                                    quote="Student feedback forms and parent communication letters are now generated instantly. Excellent tool for modern education."
-                                    name="Mrs. Meera Joshi"
-                                    role="Coordinator, Little Angels School"
-                                    avatar="https://randomuser.me/api/portraits/women/35.jpg"
-                                    rating={5}
-                                />
+                    
+                    {/* Global Impact Section */}
+                    <div className="mt-16 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
+                        <div className="text-center max-w-3xl mx-auto">
+                            <h3 className="text-2xl font-bold text-slate-900 mb-4">Trusted by Professionals Across 15+ Countries</h3>
+                            <p className="text-slate-600 mb-8">From startups in Silicon Valley to educational institutions in Nepal, Marge It Pro is helping professionals save time and reduce errors worldwide.</p>
+                            
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                                <div className="flex flex-col items-center">
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-2">
+                                        <span className="text-2xl">🇺🇸</span>
+                                    </div>
+                                    <span className="text-sm text-slate-600">USA</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-2">
+                                        <span className="text-2xl">🇬🇧</span>
+                                    </div>
+                                    <span className="text-sm text-slate-600">UK</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-2">
+                                        <span className="text-2xl">🇳🇵</span>
+                                    </div>
+                                    <span className="text-sm text-slate-600">Nepal</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-2">
+                                        <span className="text-2xl">🇮🇳</span>
+                                    </div>
+                                    <span className="text-sm text-slate-600">India</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-2">
+                                        <span className="text-2xl">🇦🇺</span>
+                                    </div>
+                                    <span className="text-sm text-slate-600">Australia</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-2">
+                                        <span className="text-2xl">🇨🇦</span>
+                                    </div>
+                                    <span className="text-sm text-slate-600">Canada</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    {/* Company Reviews */}
-                    <div>
-                        <h3 className="text-2xl font-bold text-slate-900 text-center mb-8 flex items-center justify-center gap-2">
-                            <span className="material-icons-outlined text-4xl text-green-600">business</span> Leading Companies
-                        </h3>
-                        <div ref={companiesRef} className="overflow-x-auto scrollbar-hide">
-                            <div className="flex gap-6 pb-4" style={{width: 'max-content'}}>
-                                <ReviewCard
-                                    quote="Our sales team generates personalized proposals and contracts in seconds. Revenue increased by 40% due to faster response times."
-                                    name="Amitabh Verma"
-                                    role="Sales Director, TechCorp Solutions"
-                                    avatar="https://randomuser.me/api/portraits/men/40.jpg"
-                                    rating={5}
-                                />
-                                <ReviewCard
-                                    quote="HR onboarding documents are now fully automated. From offer letters to policy documents, everything is streamlined."
-                                    name="Sneha Gupta"
-                                    role="HR Manager, GlobalTech Industries"
-                                    avatar="https://randomuser.me/api/portraits/women/30.jpg"
-                                    rating={5}
-                                />
-                                <ReviewCard
-                                    quote="Financial reports and client statements are generated automatically. Our accounting department is 70% more efficient."
-                                    name="Rajiv Mehta"
-                                    role="CFO, FinanceHub Ltd"
-                                    avatar="https://randomuser.me/api/portraits/men/55.jpg"
-                                    rating={5}
-                                />
-                                <ReviewCard
-                                    quote="Marketing materials and campaign reports are now created instantly. The AI suggestions for layouts are spot-on."
-                                    name="Kavita Rao"
-                                    role="Marketing Head, Creative Solutions"
-                                    avatar="https://randomuser.me/api/portraits/women/38.jpg"
-                                    rating={5}
-                                />
-                                <ReviewCard
-                                    quote="Legal document automation has transformed our workflow. Contracts and agreements are generated with perfect accuracy."
-                                    name="Arun Prakash"
-                                    role="Legal Counsel, LegalTech Partners"
-                                    avatar="https://randomuser.me/api/portraits/men/48.jpg"
-                                    rating={5}
-                                />
+                    
+                    {/* Additional Testimonials Carousel */}
+                    <div className="mt-16">
+                        <h3 className="text-2xl font-bold text-center text-slate-900 mb-8">What Our Global Users Say</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                <div className="flex items-center mb-4">
+                                    <div className="flex">
+                                        <span className="material-icons-outlined text-yellow-400">star</span>
+                                        <span className="material-icons-outlined text-yellow-400">star</span>
+                                        <span className="material-icons-outlined text-yellow-400">star</span>
+                                        <span className="material-icons-outlined text-yellow-400">star</span>
+                                        <span className="material-icons-outlined text-yellow-400">star</span>
+                                    </div>
+                                </div>
+                                <p className="text-slate-700 mb-4">"This tool has transformed how we handle client proposals. We've reduced our document creation time by 75% and improved accuracy significantly."</p>
+                                <div className="flex items-center gap-3">
+                                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Michael Johnson" className="w-10 h-10 rounded-full object-cover"/>
+                                    <div>
+                                        <p className="font-bold text-slate-900">Michael Johnson</p>
+                                        <p className="text-slate-600">Sales Director, Tech Solutions Inc. (USA)</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </Section>
-
-                {/* Nepali Schools Logos Section */}
-                <Section isGray>
-                    <SectionTitle
-                        title="Trusted by Schools Across Nepal"
-                        subtitle="Join hundreds of educational institutions in Nepal who trust Marge It Pro for their document automation needs."
-                    />
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 items-center">
-                        <div className="flex items-center justify-center">
-                            <img src="https://lh3.googleusercontent.com/pw/AP1GczNIZwjO76ZHEgCQkKlpOia006gD7iIvcqv5Qkne3rIuYpx8-F7OgbKrRGDl7RJ2CKjTYW_j1-JXdreJnx1MCm6XdOTh9V3UVM7KtZYqcG_XuZoWKA=w2400" alt="School Logo 1" className="h-20 object-contain transition-all duration-300" onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjY2NjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiLz48dGV4dCB4PSI2MCIgeT0iNDAiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkxvZ288L3RleHQ+PC9zdmc+'} />
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <img src="https://lh3.googleusercontent.com/pw/AP1GczONZdGj8go2210JXuwrcABgUSsdPlATw7_16MXQqHtyWAA4kU4tqJGqYC9EIlyb8MgTdF2QBDIuVECyOqebnQZQLz7wi34feqPGZEdp675JD9VO-A=w2400" alt="School Logo 2" className="h-20 object-contain transition-all duration-300" onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjY2NjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiLz48dGV4dCB4PSI2MCIgeT0iNDAiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkxvZ288L3RleHQ+PC9zdmc+'} />
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <img src="https://lh3.googleusercontent.com/pw/AP1GczPIck4sHLBuUhCBxrCW91CWzOZXHi1yBDQ0R7itsWEveKdh_VvbfLDX_uvHeZ26OtgeFlHNL0xLehMJrG0aiWbuEjN5m1IxRJVSPOR1PfHGibBzIg=w2400" alt="School Logo 3" className="h-20 object-contain transition-all duration-300" onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjY2NjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiLz48dGV4dCB4PSI2MCIgeT0iNDAiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkxvZ288L3RleHQ+PC9zdmc+'} />
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <img src="https://lh3.googleusercontent.com/pw/AP1GczNAXBMimIyb_C07Qt7tbopGI0eGlnQLWKd7jSoMPf8EZLwCYomm72Fmww84-F69OflDaEB9FG1pvu3PNfAyy-A4zm91hwblvgZEAgvfB_tlr_Tl0Q=w2400" alt="School Logo 4" className="h-20 object-contain transition-all duration-300" onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjY2NjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiLz48dGV4dCB4PSI2MCIgeT0iNDAiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkxvZ288L3RleHQ+PC9zdmc+'} />
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <img src="https://lh3.googleusercontent.com/pw/AP1GczN9FHbOSDyepCgGsgP51QsPfkdss0fKC27SlnAdOIarWY-8pPuJZfRa-m0Zqj4TWjmthS0eezdZsxhZw46gxIvSLgmBDxo1GeY2PSGErqLXfvHV9g=w2400" alt="School Logo 5" className="h-20 object-contain transition-all duration-300" onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjY2NjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiLz48dGV4dCB4PSI2MCIgeT0iNDAiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkxvZ288L3RleHQ+PC9zdmc+'} />
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <img src="https://lh3.googleusercontent.com/pw/AP1GczNEe50RCOW5r0iHwkc9Kz0j5iav_xOppeelg2oqr4_Q9qXQ0LchQhM6QQXEe9sz27GkVk33y4qYXzG4VcSFgyhoGoFFPaz32JRq53jaYYpz73tx8A=w2400" alt="School Logo 6" className="h-20 object-contain transition-all duration-300" onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjY2NjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiLz48dGV4dCB4PSI2MCIgeT0iNDAiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkxvZ288L3RleHQ+PC9zdmc+'} />
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <img src="https://lh3.googleusercontent.com/pw/AP1GczNz9wPJ7m--JgSsgenTVXUPQPhQ_L7nQ9v-RIQ6Fo27lqmKiRUOZhNg5KAGzK8LmrlFRnHSQM3flAQUhaZ1fKlJs7TUsKZ76mrDFoUMe7NBqOo2ew=w2400" alt="School Logo 7" className="h-20 object-contain transition-all duration-300" onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjY2NjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiLz48dGV4dCB4PSI2MCIgeT0iNDAiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkxvZ288L3RleHQ+PC9zdmc+'} />
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <img src="https://lh3.googleusercontent.com/pw/AP1GczPE5V2Dt7j1eeGUyXbCvKTJRQ1HbYn0w3vsSMI1Pj5Us06P6k3xBGT3r4A5mjjPUysY97n9dXBjlHmG2lHcG25uphqaNlk-4N9pWo_FhiS2ryHW9g=w2400" alt="School Logo 8" className="h-20 object-contain transition-all duration-300" onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjY2NjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiLz48dGV4dCB4PSI2MCIgeT0iNDAiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkxvZ288L3RleHQ+PC9zdmc+'} />
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <img src="https://lh3.googleusercontent.com/pw/AP1GczNFXkQXemp6GHG4F3BICU-XFKsuQJ27r5CAmbMFHVco-iWSnNsCzUO_1F1XEQ36rsLHQK7DfXnTT0HiY7wR76ad-YBzk-ZAu7ypjQmUVMpUJYy_Jw=w2400" alt="School Logo 9" className="h-20 object-contain transition-all duration-300" onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjY2NjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiLz48dGV4dCB4PSI2MCIgeT0iNDAiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkxvZ288L3RleHQ+PC9zdmc+'} />
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <img src="https://lh3.googleusercontent.com/pw/AP1GczNGP2ulLwSmF1S_Hl0JEJwp6N6bNa3pnSEQspIBHdk-_mQAO9k3kxGTUImdHaTs5UvA6d3vD9gFpT_LOCOmfqdxe4ddN6rd-nHyMBNb2Im1ufQlOA=w2400" alt="Nepal International School" className="h-20 object-contain transition-all duration-300" onError={(e) => e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjY2NjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiLz48dGV4dCB4PSI2MCIgeT0iNDAiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkVycm9yPC90ZXh0Pjwvc3ZnPg=='} />
+                            
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                <div className="flex items-center mb-4">
+                                    <div className="flex">
+                                        <span className="material-icons-outlined text-yellow-400">star</span>
+                                        <span className="material-icons-outlined text-yellow-400">star</span>
+                                        <span className="material-icons-outlined text-yellow-400">star</span>
+                                        <span className="material-icons-outlined text-yellow-400">star</span>
+                                        <span className="material-icons-outlined text-yellow-400">star</span>
+                                    </div>
+                                </div>
+                                <p className="text-slate-700 mb-4">"As a teacher in Kathmandu, this tool has been a blessing. Creating personalized feedback for 200+ students used to take weeks, now it's done in minutes."</p>
+                                <div className="flex items-center gap-3">
+                                    <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Sunita Thapa" className="w-10 h-10 rounded-full object-cover"/>
+                                    <div>
+                                        <p className="font-bold text-slate-900">Sunita Thapa</p>
+                                        <p className="text-slate-600">Senior Teacher, National School (Nepal)</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </Section>
 
                 {/* Final CTA */}
-                <Section>
-                    <div className="text-center max-w-3xl mx-auto bg-white p-10 rounded-2xl">
-                        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Ready to Save Hours of Work?</h2>
-                        <p className="mt-4 text-lg text-slate-600">Join hundreds of professionals who are automating their document workflows. Sign up now and start merging in minutes.</p>
-                         <div className="mt-8">
-                            <CtaButton href="#login" primary className="text-lg px-8 py-4">
-                                Start Your Free Trial Today <span className="material-icons-outlined text-xl ml-1">arrow_forward</span>
+                <Section isGray>
+                    <div className="text-center max-w-4xl mx-auto bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-12 text-white">
+                        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Ready to Transform Your Document Workflow?</h2>
+                        <p className="text-lg opacity-90 max-w-2xl mx-auto mb-8">
+                            Join thousands of professionals who save hours every week with Marge It Pro. 
+                            Start your free trial today - no credit card required.
+                        </p>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <CtaButton href="#login" primary className="text-lg px-8 py-4 bg-white text-indigo-600 hover:bg-slate-100">
+                                Start Free Trial <span className="material-icons-outlined text-xl ml-2">arrow_forward</span>
+                            </CtaButton>
+                            <CtaButton href="#features" className="text-lg px-8 py-4 bg-transparent border border-white text-white hover:bg-white/10">
+                                Watch Demo
                             </CtaButton>
                         </div>
                     </div>
@@ -483,7 +617,21 @@ const HomePage: React.FC = () => {
                         {/* 2. Center Left Align: Designed & Developed */}
                         <div className="text-center">
                             <b className="text-sm tracking-wider text-gray-300">Designed & Developed By</b><br />
-                            <span className="name">Man Singh Rana</span>
+                            <div className="mt-2">
+                                <h3 className="name text-lg font-bold text-white">Man Singh Rana</h3>
+                                <p className="text-gray-400 text-sm mt-1">Full Stack Developer & UI/UX Designer</p>
+                                <div className="flex justify-center gap-2 mt-2">
+                                    <a href="https://linkedin.com/in/man-singh-rana" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                                        <span className="material-icons-outlined text-lg">person</span>
+                                    </a>
+                                    <a href="https://github.com/man-singh-rana" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                                        <span className="material-icons-outlined text-lg">code</span>
+                                    </a>
+                                    <a href="mailto:manishconfid@gmail.com" className="text-gray-400 hover:text-white transition-colors">
+                                        <span className="material-icons-outlined text-lg">email</span>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
 
                         {/* 3. Center Right Align: Image */}
@@ -501,8 +649,32 @@ const HomePage: React.FC = () => {
                     {/* 4. Right Align: Links */}
                     {/* On mobile, these links appear after the center content, before copyright */}
                     <div className="flex space-x-4 order-3 md:order-4 text-sm text-center md:text-right md:w-1/4">
-                        <a href="#" className="text-gray-400 hover:text-indigo-500 transition-colors duration-200 p-1 rounded-md">Privacy Policy</a>
-                        <a href="#" className="text-gray-400 hover:text-indigo-500 transition-colors duration-200 p-1 rounded-md">Terms of Service</a>
+                        <a 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (navigateTo) {
+                                    navigateTo('privacy-policy');
+                                } else {
+                                    window.location.hash = 'privacy-policy';
+                                }
+                            }}
+                            className="text-gray-400 hover:text-indigo-500 transition-colors duration-200 p-1 rounded-md cursor-pointer"
+                        >
+                            Privacy Policy
+                        </a>
+                        <a 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (navigateTo) {
+                                    navigateTo('terms-of-service');
+                                } else {
+                                    window.location.hash = 'terms-of-service';
+                                }
+                            }}
+                            className="text-gray-400 hover:text-indigo-500 transition-colors duration-200 p-1 rounded-md cursor-pointer"
+                        >
+                            Terms of Service
+                        </a>
                     </div>
                 </div>
             </footer>

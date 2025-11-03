@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Netlify Function</title>
+</head>
+<body>
+    <h1>Netlify Function Test</h1>
+    <button id="testFunction">Test Netlify Function</button>
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('testFunction').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing Netlify function...</p>';
+            
+            try {
+                const response = await fetch('/.netlify/functions/gas-proxy', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

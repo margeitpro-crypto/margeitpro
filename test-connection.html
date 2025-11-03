@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test GAS Connection</title>
+</head>
+<body>
+    <h1>Google Apps Script Connection Test</h1>
+    <button id="testDirect">Test Direct Connection</button>
+    <button id="testProxy">Test Proxy Connection</button>
+    <button id="testMultiProxy">Test Multiple Proxies</button>
+    <button id="testPost">Test POST Request</button>
+    <button id="testNetlifyFunction">Test Netlify Function</button>
+    <div id="results"></div>
+
+    <script type="module">
+        import { testGasConnection, testGasConnectionWithProxy, testGasConnectionWithMultipleProxies, testGasConnectionPost } from './test-gas-connection.ts';
+        
+        document.getElementById('testDirect').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing direct connection...</p>';
+            
+            try {
+                const result = await testGasConnection();
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+        
+        document.getElementById('testProxy').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing proxy connection...</p>';
+            
+            try {
+                const result = await testGasConnectionWithProxy();
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+        
+        document.getElementById('testMultiProxy').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing multiple proxy connections...</p>';
+            
+            try {
+                const result = await testGasConnectionWithMultipleProxies();
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+        
+        document.getElementById('testPost').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing POST request...</p>';
+            
+            try {
+                const result = await testGasConnectionPost({test: true});
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+        
+        document.getElementById('testNetlifyFunction').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing Netlify function...</p>';
+            
+            try {
+                const response = await fetch('/.netlify/functions/gas-proxy', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

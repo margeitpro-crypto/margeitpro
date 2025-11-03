@@ -232,6 +232,217 @@ export const getAuditLogsData = async (filters: any): Promise<AuditLog[]> => {
 
 const GAS_URL = '/gas';
 
+// For production environments, use the full URL directly
+const getGasUrl = () => {
+  // Check if we're in development (localhost) or production
+  if (typeof window !== 'undefined' && 
+      (window.location.hostname === 'localhost' || 
+       window.location.hostname === '127.0.0.1' || 
+       window.location.hostname.startsWith('192.168.'))) {
+    // In development, use the proxy
+    return '/gas';
+  } else {
+    // In production, use the direct URL
+    return getDirectGasUrl();
+  }
+};
+
+// Add a fallback URL for additional reliability
+const getDirectGasUrl = () => {
+  // This is the URL from your error message
+  return 'https://script.google.com/macros/s/AKfycbyjXDsJ5PL2N_91KIPNS2EUMIaoFiNxE5LV79RQN2emeyna5AaRriLzs29MZZjAEPXS/exec';
+};
+
+// CORS proxy service for production environments
+const getCorsProxyUrl = (targetUrl: string) => {
+  // Using a public CORS proxy service
+  // Note: This is a temporary solution. For production, you should use your own proxy service
+  return `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+};
+
+// Alternative CORS proxy services
+const getAlternativeProxyUrls = (targetUrl: string) => {
+  return [
+    // Our own Netlify function proxy
+    '/.netlify/functions/gas-proxy',
+    // Public CORS proxy services
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+    `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+    `https://thingproxy.freeboard.io/fetch/${targetUrl}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+  ];
+};
+
+// Enhanced fetch function with multiple proxy fallbacks
+const fetchWithMultipleProxies = async (url: string, options: RequestInit, timeout: number = 30000): Promise<Response> => {
+  // Try direct request first
+  try {
+    console.log('Trying direct request to:', url);
+    return await fetchWithTimeoutAndRetry(url, options, timeout, 1);
+  } catch (directError) {
+    console.warn('Direct request failed:', directError);
+    
+    // Try multiple proxy services as fallbacks
+    const proxyUrls = getAlternativeProxyUrls(url);
+    
+    for (const proxyUrl of proxyUrls) {
+      try {
+        console.log('Trying proxy:', proxyUrl);
+        
+        // Special handling for our Netlify function proxy
+        if (proxyUrl === '/.netlify/functions/gas-proxy') {
+          // For our Netlify function, we need to pass the original request data
+          const proxyOptions = {
+            ...options,
+            method: 'POST', // Netlify function expects POST
+            headers: {
+              ...options.headers,
+              'X-Requested-With': 'XMLHttpRequest',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            },
+            body: JSON.stringify({
+              url: url,
+              method: options.method || 'GET',
+              headers: options.headers,
+              body: options.body
+            })
+          };
+          return await fetchWithTimeoutAndRetry(proxyUrl, proxyOptions, timeout, 0);
+        } else {
+          // For public proxies, we need to pass the target URL as a parameter
+          const proxyOptions = {
+            ...options,
+            headers: {
+              ...options.headers,
+              'X-Requested-With': 'XMLHttpRequest',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+          };
+          return await fetchWithTimeoutAndRetry(proxyUrl, proxyOptions, timeout, 0);
+        }
+      } catch (proxyError) {
+        console.warn('Proxy failed:', proxyUrl, proxyError);
+        continue; // Try next proxy
+      }
+    }
+    
+    // If all proxies fail, throw the original error
+    throw directError;
+  }
+};
+
+// Add a timeout helper function
+const fetchWithTimeout = async (url: string, options: RequestInit, timeout: number = 30000): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  // Add CORS headers for all requests
+  const fetchOptions: RequestInit = {
+    ...options,
+    mode: 'cors',
+    credentials: 'omit',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      ...options.headers,
+    },
+  };
+  
+  try {
+    const response = await fetch(url, {
+      ...fetchOptions,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
+
+// Enhanced fetch function with fallback
+const fetchWithFallback = async (primaryUrl: string, fallbackUrl: string, options: RequestInit, timeout: number = 30000): Promise<Response> => {
+  try {
+    // Try primary URL first
+    return await fetchWithTimeout(primaryUrl, options, timeout);
+  } catch (primaryError) {
+    console.warn('Primary URL failed, trying fallback:', primaryError);
+    try {
+      // Try fallback URL
+      return await fetchWithTimeout(fallbackUrl, options, timeout);
+    } catch (fallbackError) {
+      console.error('Both primary and fallback URLs failed:', primaryError, fallbackError);
+      // Throw the primary error as it's more likely to be the relevant one
+      throw primaryError;
+    }
+  }
+};
+
+// Add a timeout helper function with retry logic
+const fetchWithTimeoutAndRetry = async (url: string, options: RequestInit, timeout: number = 30000, maxRetries: number = 3): Promise<Response> => {
+  let lastError: any;
+  
+  for (let i = 0; i <= maxRetries; i++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    // Add CORS headers for all requests
+    const fetchOptions: RequestInit = {
+      ...options,
+      mode: 'cors',
+      credentials: 'omit',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        ...options.headers,
+      },
+    };
+    
+    try {
+      const response = await fetch(url, {
+        ...fetchOptions,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      lastError = error;
+      
+      // If this is the last retry, throw the error
+      if (i === maxRetries) {
+        throw error;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+    }
+  }
+  
+  throw lastError;
+};
+
+// Enhanced fetch function with fallback and retry
+const fetchWithFallbackAndRetry = async (primaryUrl: string, fallbackUrl: string, options: RequestInit, timeout: number = 30000, maxRetries: number = 3): Promise<Response> => {
+  try {
+    // Try primary URL first with retry logic
+    return await fetchWithTimeoutAndRetry(primaryUrl, options, timeout, maxRetries);
+  } catch (primaryError) {
+    console.warn('Primary URL failed after retries, trying fallback:', primaryError);
+    try {
+      // Try fallback URL with retry logic
+      return await fetchWithTimeoutAndRetry(fallbackUrl, options, timeout, maxRetries);
+    } catch (fallbackError) {
+      console.error('Both primary and fallback URLs failed after retries:', primaryError, fallbackError);
+      // Throw the primary error as it's more likely to be the relevant one
+      throw primaryError;
+    }
+  }
+};
+
 export const runSlidesMerge = async (params: GasRequestParams): Promise<GasResponse> => {
     console.log('Running slides merge:', params);
 
@@ -242,21 +453,52 @@ export const runSlidesMerge = async (params: GasRequestParams): Promise<GasRespo
     }
 
     try {
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...params, mode: 'slides', action: 'merge' }),
-        });
+        // Check if we're in production or development
+        const isDevelopment = typeof window !== 'undefined' && 
+            (window.location.hostname === 'localhost' || 
+             window.location.hostname === '127.0.0.1' || 
+             window.location.hostname.startsWith('192.168.'));
+        
+        let response: Response;
+        
+        if (isDevelopment) {
+            // In development, use the local proxy
+            console.log('Using local proxy for development environment');
+            response = await fetchWithFallbackAndRetry(getGasUrl(), getDirectGasUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...params, mode: 'slides', action: 'merge' }),
+            }, 60000, 2); // 60 second timeout for merges, 2 retries
+        } else {
+            // In production, try direct URL first, then multiple proxies as fallback
+            console.log('Using direct URL for production environment');
+            response = await fetchWithMultipleProxies(getDirectGasUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...params, mode: 'slides', action: 'merge' }),
+            }, 60000); // 60 second timeout for merges
+        }
 
+        console.log('Received response from GAS:', response.status, response.statusText);
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
+        console.log('GAS response data:', result);
+        
         if (result.error) throw new Error(result.error);
         return formatGasSuccess(result);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Slides merge error:', error);
+        if (error.name === 'AbortError') {
+            return formatGasError('Merge operation timed out. Please try again with fewer rows or check your internet connection.');
+        }
+        // Handle CORS errors specifically
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            return formatGasError('Unable to connect to the merge service. This may be due to network restrictions or CORS policy. Please try again or contact support.');
+        }
         return formatGasError(error);
     }
 };
@@ -271,21 +513,52 @@ export const runDocsMerge = async (params: GasRequestParams): Promise<GasRespons
     }
 
     try {
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...params, mode: 'docs', action: 'merge' }),
-        });
+        // Check if we're in production or development
+        const isDevelopment = typeof window !== 'undefined' && 
+            (window.location.hostname === 'localhost' || 
+             window.location.hostname === '127.0.0.1' || 
+             window.location.hostname.startsWith('192.168.'));
+        
+        let response: Response;
+        
+        if (isDevelopment) {
+            // In development, use the local proxy
+            console.log('Using local proxy for development environment');
+            response = await fetchWithFallbackAndRetry(getGasUrl(), getDirectGasUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...params, mode: 'docs', action: 'merge' }),
+            }, 60000, 2); // 60 second timeout for merges, 2 retries
+        } else {
+            // In production, try direct URL first, then multiple proxies as fallback
+            console.log('Using direct URL for production environment');
+            response = await fetchWithMultipleProxies(getDirectGasUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...params, mode: 'docs', action: 'merge' }),
+            }, 60000); // 60 second timeout for merges
+        }
 
+        console.log('Received response from GAS:', response.status, response.statusText);
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
+        console.log('GAS response data:', result);
+        
         if (result.error) throw new Error(result.error);
         return formatGasSuccess(result);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Docs merge error:', error);
+        if (error.name === 'AbortError') {
+            return formatGasError('Merge operation timed out. Please try again with fewer rows or check your internet connection.');
+        }
+        // Handle CORS errors specifically
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            return formatGasError('Unable to connect to the merge service. This may be due to network restrictions or CORS policy. Please try again or contact support.');
+        }
         return formatGasError(error);
     }
 };
@@ -300,21 +573,52 @@ export const runSlidesPreview = async (params: GasRequestParams): Promise<GasRes
     }
 
     try {
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...params, mode: 'slides', action: 'preview' }),
-        });
+        // Check if we're in production or development
+        const isDevelopment = typeof window !== 'undefined' && 
+            (window.location.hostname === 'localhost' || 
+             window.location.hostname === '127.0.0.1' || 
+             window.location.hostname.startsWith('192.168.'));
+        
+        let response: Response;
+        
+        if (isDevelopment) {
+            // In development, use the local proxy
+            console.log('Using local proxy for development environment');
+            response = await fetchWithFallbackAndRetry(getGasUrl(), getDirectGasUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...params, mode: 'slides', action: 'preview' }),
+            }, 30000, 2); // 30 second timeout for previews, 2 retries
+        } else {
+            // In production, try direct URL first, then multiple proxies as fallback
+            console.log('Using direct URL for production environment');
+            response = await fetchWithMultipleProxies(getDirectGasUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...params, mode: 'slides', action: 'preview' }),
+            }, 30000); // 30 second timeout for previews
+        }
 
+        console.log('Received response from GAS:', response.status, response.statusText);
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
+        console.log('GAS response data:', result);
+        
         if (result.error) throw new Error(result.error);
         return formatGasSuccess(result);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Slides preview error:', error);
+        if (error.name === 'AbortError') {
+            return formatGasError('Preview generation timed out. Please try again or check your internet connection.');
+        }
+        // Handle CORS errors specifically
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            return formatGasError('Unable to connect to the preview service. This may be due to network restrictions or CORS policy. Please try again or contact support.');
+        }
         return formatGasError(error);
     }
 };
@@ -329,21 +633,52 @@ export const runDocsPreview = async (params: GasRequestParams): Promise<GasRespo
     }
 
     try {
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...params, mode: 'docs', action: 'preview' }),
-        });
+        // Check if we're in production or development
+        const isDevelopment = typeof window !== 'undefined' && 
+            (window.location.hostname === 'localhost' || 
+             window.location.hostname === '127.0.0.1' || 
+             window.location.hostname.startsWith('192.168.'));
+        
+        let response: Response;
+        
+        if (isDevelopment) {
+            // In development, use the local proxy
+            console.log('Using local proxy for development environment');
+            response = await fetchWithFallbackAndRetry(getGasUrl(), getDirectGasUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...params, mode: 'docs', action: 'preview' }),
+            }, 30000, 2); // 30 second timeout for previews, 2 retries
+        } else {
+            // In production, try direct URL first, then multiple proxies as fallback
+            console.log('Using direct URL for production environment');
+            response = await fetchWithMultipleProxies(getDirectGasUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...params, mode: 'docs', action: 'preview' }),
+            }, 30000); // 30 second timeout for previews
+        }
 
+        console.log('Received response from GAS:', response.status, response.statusText);
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
+        console.log('GAS response data:', result);
+        
         if (result.error) throw new Error(result.error);
         return formatGasSuccess(result);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Docs preview error:', error);
+        if (error.name === 'AbortError') {
+            return formatGasError('Preview generation timed out. Please try again or check your internet connection.');
+        }
+        // Handle CORS errors specifically
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            return formatGasError('Unable to connect to the preview service. This may be due to network restrictions or CORS policy. Please try again or contact support.');
+        }
         return formatGasError(error);
     }
 };

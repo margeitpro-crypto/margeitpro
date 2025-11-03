@@ -104,13 +104,18 @@ export default function MargeItPage({ setModal, user }: PageProps) {
     }
 
     setIsProcessing(true);
-    setModal({ type: 'progress', props: { title: 'Processing Merge...', message: 'Please wait, this may take a few moments.' } });
+    setModal({ type: 'progress', props: { title: 'Processing Merge...', message: 'Please wait, this may take a few moments. Large merges may take longer.' } });
 
     try {
       const mergeFunction = currentMode === 'slides' ? runSlidesMerge : runDocsMerge;
       const response: any = await mergeFunction({ ...formData, mode: currentMode, runtype: runType as 'custom' | 'allinone' });
 
       if (response.error) throw new Error(response.error);
+
+      // Check if response contains URLs
+      if (!response.data || !response.data.urls || response.data.urls.length === 0) {
+        throw new Error('Merge completed but no files were generated. Please check your template and data.');
+      }
 
       const newResults: MergeLog[] = response.data.urls.map((url: string, i: number) => ({
           sn: Date.now() + i,
@@ -155,8 +160,19 @@ export default function MargeItPage({ setModal, user }: PageProps) {
 
     } catch (error: any) {
       console.error("Merge failed", error);
-      const errorMessage = error.message || "An unknown error occurred during the merge process.";
-      setModal({ type: 'confirmation', props: { title: 'Merge Failed', message: errorMessage, confirmText: "Close", confirmColor: 'btn-danger', onConfirm: () => setModal({ type: null, props: {} }) }});
+      const errorMessage = error.message || "An unknown error occurred during the merge process. Please check your spreadsheet ID, template ID, and internet connection.";
+      
+      // More specific error messages
+      let displayMessage = errorMessage;
+      if (errorMessage.includes('timeout')) {
+        displayMessage = 'Merge operation timed out. Please try again with fewer rows or check your internet connection.';
+      } else if (errorMessage.includes('HTTP error')) {
+        displayMessage = 'Unable to connect to the merge service. Please check your internet connection and try again.';
+      } else if (errorMessage.includes('network')) {
+        displayMessage = 'Network error occurred. Please check your internet connection and try again.';
+      }
+
+      setModal({ type: 'confirmation', props: { title: 'Merge Failed', message: displayMessage, confirmText: "Close", confirmColor: 'btn-danger', onConfirm: () => setModal({ type: null, props: {} }) }});
       const failedResult: MergeLog = {
           sn: Date.now(),
           fileName: formData.outputFileName || 'Untitled Merge',

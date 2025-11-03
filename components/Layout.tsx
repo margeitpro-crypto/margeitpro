@@ -153,7 +153,9 @@ export const Header: React.FC<HeaderProps> = ({ setSidebarOpen, toggleTheme, the
         try {
             // FIX: Changed to Firebase v8 syntax for signing out.
             await auth.signOut();
-            // App component will handle redirecting to LandingPage
+            // Navigate to home page after logout
+            window.location.hash = '';
+            navigateTo('');
         } catch (error) {
             console.error("Logout failed:", error);
         }

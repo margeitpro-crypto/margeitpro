@@ -22,6 +22,8 @@ const Settings = React.lazy(() => import('./pages/Settings'));
 const FormManagement = React.lazy(() => import('./pages/FormManagement'));
 const SystemAnalytics = React.lazy(() => import('./pages/SystemAnalytics'));
 const Help = React.lazy(() => import('./pages/Help'));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
 
 // Modal Components
 import { ConfirmationModal, ProgressModal, PreviewModal } from './components/Modals';
@@ -161,6 +163,12 @@ const AppContent: React.FC = () => {
     }, [user]);
 
     const pageToRender = useMemo(() => {
+        // Handle public pages that don't require authentication
+        switch (currentPage) {
+            case 'privacy-policy': return <PrivacyPolicy {...{ setModal, theme, refreshNotifications, navigateTo, user }} />;
+            case 'terms-of-service': return <TermsOfService {...{ setModal, theme, refreshNotifications, navigateTo, user }} />;
+        }
+
         if (!user) return null;
 
         if (currentPage && !accessiblePages.includes(currentPage)) {
@@ -185,6 +193,8 @@ const AppContent: React.FC = () => {
             case 'settings': return <Settings {...pageProps} />;
             case 'todo': return null; // Notepad removed
             case 'help': return <Help {...pageProps} />;
+            case 'privacy-policy': return <PrivacyPolicy {...pageProps} />;
+            case 'terms-of-service': return <TermsOfService {...pageProps} />;
             default:
                 const defaultPage = accessiblePages.includes('admin-control-center') ? 'admin-control-center' : 'user-dashboard';
                  if (currentPage !== defaultPage) {
@@ -204,10 +214,20 @@ const AppContent: React.FC = () => {
         if (currentPage === 'login') {
             return <LoginPage />;
         }
-        if (currentPage) {
-            window.location.hash = 'login';
+        // Handle public pages for non-authenticated users
+        if (currentPage === 'privacy-policy') {
+            const pageProps: import('./types').PageProps = { setModal, theme, refreshNotifications, navigateTo, user };
+            return <PrivacyPolicy {...pageProps} />;
         }
-        return <HomePage />;
+        if (currentPage === 'terms-of-service') {
+            const pageProps: import('./types').PageProps = { setModal, theme, refreshNotifications, navigateTo, user };
+            return <TermsOfService {...pageProps} />;
+        }
+        if (currentPage) {
+            window.location.hash = '';
+        }
+        const homePageProps = { navigateTo };
+        return <HomePage {...homePageProps} />;
     }
     
     return (
