@@ -1,7 +1,7 @@
 // Simple Node.js script to test Google Apps Script connection
 // This can be run from the command line: node test-gas-server.js
 
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
 const gasUrl = 'https://script.google.com/macros/s/AKfycbyjXDsJ5PL2N_91KIPNS2EUMIaoFiNxE5LV79RQN2emeyna5AaRriLzs29MZZjAEPXS/exec';
 

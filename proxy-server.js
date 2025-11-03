@@ -1,9 +1,9 @@
 // Simple CORS proxy server for Google Apps Script
 // This can be deployed to a service like Vercel, Netlify Functions, or Render
 
-import express from 'express';
-import cors from 'cors';
-import fetch from 'node-fetch';
+const express = require('express');
+const cors = require('cors');
+const fetch = require('node-fetch');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -72,4 +72,4 @@ app.listen(PORT, () => {
   console.log(`CORS proxy server running on port ${PORT}`);
 });
 
-export default app;
+module.exports = app;

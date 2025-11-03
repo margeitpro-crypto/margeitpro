@@ -1,7 +1,7 @@
 // Netlify Function for Google Apps Script CORS proxy
 // This function will be deployed automatically with Netlify
 
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
   try {
