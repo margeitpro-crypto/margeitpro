@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { db } from './services/firebase';
 import { collection, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 import { User, Notification as NotificationType, ModalState } from './types';
@@ -8,23 +8,20 @@ import { getRecentNotifications } from './services/gasClient';
 // Layout Components
 import { Header, Sidebar, adminMenu, generalMenu } from './components/Layout';
 
-// Page Components
-import HomePage from './pages/Home';
-import LoginPage from './pages/LoginPage';
-import AdminControlCenter from './pages/AdminControlCenter';
-
-
-import UserDashboard from './pages/UserDashboard';
-import MargeItPage from './pages/MergeIt';
-import Templates from './pages/Templates';
-import MergeLogs from './pages/MergeLogs';
-import Notifications from './pages/Notifications';
-import Billing from './pages/Billing';
-import Settings from './pages/Settings';
-
-
-import FormManagement from './pages/FormManagement';
-import SystemAnalytics from './pages/SystemAnalytics';
+// Page Components (Lazy loaded for performance)
+const HomePage = React.lazy(() => import('./pages/Home'));
+const LoginPage = React.lazy(() => import('./pages/LoginPage'));
+const AdminControlCenter = React.lazy(() => import('./pages/AdminControlCenter'));
+const UserDashboard = React.lazy(() => import('./pages/UserDashboard'));
+const MargeItPage = React.lazy(() => import('./pages/MergeIt'));
+const Templates = React.lazy(() => import('./pages/Templates'));
+const MergeLogs = React.lazy(() => import('./pages/MergeLogs'));
+const Notifications = React.lazy(() => import('./pages/Notifications'));
+const Billing = React.lazy(() => import('./pages/Billing'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const FormManagement = React.lazy(() => import('./pages/FormManagement'));
+const SystemAnalytics = React.lazy(() => import('./pages/SystemAnalytics'));
+const Help = React.lazy(() => import('./pages/Help'));
 
 // Modal Components
 import { ConfirmationModal, ProgressModal, PreviewModal } from './components/Modals';
@@ -32,7 +29,6 @@ import ToastContainer from './components/ToastContainer';
 
 // Mock data (for notifications, will be replaced by real data)
 import { MOCK_NOTIFICATIONS } from './types';
-import Help from './pages/Help';
 import { useKeyboardShortcuts, globalShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTheme } from './hooks/useTheme';
 
@@ -232,7 +228,9 @@ const AppContent: React.FC = () => {
                     notifications={notifications}
                 />
                 <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-light-background">
-                    {pageToRender}
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="spinner"></div></div>}>
+                        {pageToRender}
+                    </Suspense>
                 </main>
             </div>
 
