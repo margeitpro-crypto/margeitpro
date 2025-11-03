@@ -250,7 +250,7 @@ const getGasUrl = () => {
 // Add a fallback URL for additional reliability
 const getDirectGasUrl = () => {
   // This is the URL from your error message
-  return 'https://script.google.com/macros/s/AKfycbyjXDsJ5PL2N_91KIPNS2EUMIaoFiNxE5LV79RQN2emeyna5AaRriLzs29MZZjAEPXS/exec';
+  return 'https://script.google.com/macros/s/AKfycbzhOblUM7ebUqq8MidSmXZGVGG__-GHM5WGlGp6mdnq8MLZQkbJSPPvrFjJHZnSMO6B/exec';
 };
 
 // CORS proxy service for production environments

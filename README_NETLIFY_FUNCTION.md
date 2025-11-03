@@ -26,3 +26,6 @@ For local development, the Vite proxy configuration in `vite.config.ts` routes r
 2. Start the development server: `npm run dev`
 
 The proxy server will be available at `http://localhost:3001` and will be accessible through the Vite proxy at `/gas-proxy`.
+
+
+

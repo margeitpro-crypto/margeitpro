@@ -23,7 +23,7 @@ exports.handler = async (event, context) => {
     
     // For simplicity, forward the request directly to GAS
     // This assumes the client is sending the correct data format
-    const targetUrl = 'https://script.google.com/macros/s/AKfycbyjXDsJ5PL2N_91KIPNS2EUMIaoFiNxE5LV79RQN2emeyna5AaRriLzs29MZZjAEPXS/exec';
+    const targetUrl = 'https://script.google.com/macros/s/AKfycbzhOblUM7ebUqq8MidSmXZGVGG__-GHM5WGlGp6mdnq8MLZQkbJSPPvrFjJHZnSMO6B/exec';
     
     // Forward the request to the target URL
     const response = await fetch(targetUrl, {
