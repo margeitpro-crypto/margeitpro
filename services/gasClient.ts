@@ -263,9 +263,7 @@ const getCorsProxyUrl = (targetUrl: string) => {
 // Alternative CORS proxy services
 const getAlternativeProxyUrls = (targetUrl: string) => {
   return [
-    // Our own Netlify function proxy
-    '/.netlify/functions/gas-proxy',
-    // Public CORS proxy services
+    // Public CORS proxy services (GitHub Pages compatible)
     `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
     `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
     `https://thingproxy.freeboard.io/fetch/${targetUrl}`,
@@ -288,38 +286,17 @@ const fetchWithMultipleProxies = async (url: string, options: RequestInit, timeo
     for (const proxyUrl of proxyUrls) {
       try {
         console.log('Trying proxy:', proxyUrl);
-        
-        // Special handling for our Netlify function proxy
-        if (proxyUrl === '/.netlify/functions/gas-proxy') {
-          // For our Netlify function, we need to pass the original request data
-          const proxyOptions = {
-            ...options,
-            method: 'POST', // Netlify function expects POST
-            headers: {
-              ...options.headers,
-              'X-Requested-With': 'XMLHttpRequest',
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            },
-            body: JSON.stringify({
-              url: url,
-              method: options.method || 'GET',
-              headers: options.headers,
-              body: options.body
-            })
-          };
-          return await fetchWithTimeoutAndRetry(proxyUrl, proxyOptions, timeout, 0);
-        } else {
-          // For public proxies, we need to pass the target URL as a parameter
-          const proxyOptions = {
-            ...options,
-            headers: {
-              ...options.headers,
-              'X-Requested-With': 'XMLHttpRequest',
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-          };
-          return await fetchWithTimeoutAndRetry(proxyUrl, proxyOptions, timeout, 0);
-        }
+
+        // For public proxies, we need to pass the target URL as a parameter
+        const proxyOptions = {
+          ...options,
+          headers: {
+            ...options.headers,
+            'X-Requested-With': 'XMLHttpRequest',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        };
+        return await fetchWithTimeoutAndRetry(proxyUrl, proxyOptions, timeout, 0);
       } catch (proxyError) {
         console.warn('Proxy failed:', proxyUrl, proxyError);
         continue; // Try next proxy
