@@ -4,23 +4,39 @@
 const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
+  // Handle CORS preflight requests
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, User-Agent',
+        'Access-Control-Max-Age': '86400'
+      },
+      body: ''
+    };
+  }
+  
   try {
     console.log(`Proxying request through Netlify function`);
     
     // Parse the request body to get the actual target URL and options
-    let requestBody;
-    try {
-      requestBody = JSON.parse(event.body);
-    } catch (parseError) {
-      console.error('Error parsing request body:', parseError);
-      requestBody = {};
+    let requestBody = {};
+    if (event.body) {
+      try {
+        requestBody = JSON.parse(event.body);
+      } catch (parseError) {
+        console.error('Error parsing request body:', parseError);
+        requestBody = {};
+      }
     }
     
     // Extract target URL and options
     const targetUrl = requestBody.url || 'https://script.google.com/macros/s/AKfycbyjXDsJ5PL2N_91KIPNS2EUMIaoFiNxE5LV79RQN2emeyna5AaRriLzs29MZZjAEPXS/exec';
-    const method = requestBody.method || 'GET';
+    const method = requestBody.method || 'POST';
     const headers = requestBody.headers || {};
-    const body = requestBody.body;
+    const body = requestBody.body || event.body;
     
     console.log(`Proxying ${method} request to: ${targetUrl}`);
     
@@ -32,7 +48,7 @@ exports.handler = async (event, context) => {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         ...headers
       },
-      body: method !== 'GET' && method !== 'HEAD' ? body : undefined
+      body: method !== 'GET' && method !== 'HEAD' ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined
     });
 
     // Get response data
