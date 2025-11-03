@@ -2,6 +2,7 @@
   "name": "margeitpro",
   "private": true,
   "version": "0.0.0",
+  "homepage": "https://margeitpro-crypto.github.io/",
   "type": "module",
   "engines": {
     "node": "20.x",
@@ -12,7 +13,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "install-deps": "npm install",
-    "proxy-server": "node proxy-server.js"
+    "proxy-server": "node proxy-server.js",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.16",
@@ -31,6 +33,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.16",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.4.32",
     "rollup-plugin-visualizer": "^6.0.5",
     "tailwindcss": "^3.3.6",
