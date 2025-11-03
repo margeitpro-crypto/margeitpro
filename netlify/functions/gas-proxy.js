@@ -21,34 +21,19 @@ exports.handler = async (event, context) => {
   try {
     console.log(`Proxying request through Netlify function`);
     
-    // Parse the request body to get the actual target URL and options
-    let requestBody = {};
-    if (event.body) {
-      try {
-        requestBody = JSON.parse(event.body);
-      } catch (parseError) {
-        console.error('Error parsing request body:', parseError);
-        requestBody = {};
-      }
-    }
-    
-    // Extract target URL and options
-    const targetUrl = requestBody.url || 'https://script.google.com/macros/s/AKfycbyjXDsJ5PL2N_91KIPNS2EUMIaoFiNxE5LV79RQN2emeyna5AaRriLzs29MZZjAEPXS/exec';
-    const method = requestBody.method || 'POST';
-    const headers = requestBody.headers || {};
-    const body = requestBody.body || event.body;
-    
-    console.log(`Proxying ${method} request to: ${targetUrl}`);
+    // For simplicity, forward the request directly to GAS
+    // This assumes the client is sending the correct data format
+    const targetUrl = 'https://script.google.com/macros/s/AKfycbyjXDsJ5PL2N_91KIPNS2EUMIaoFiNxE5LV79RQN2emeyna5AaRriLzs29MZZjAEPXS/exec';
     
     // Forward the request to the target URL
     const response = await fetch(targetUrl, {
-      method: method,
+      method: event.httpMethod || 'POST',
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        ...headers
+        ...event.headers
       },
-      body: method !== 'GET' && method !== 'HEAD' ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined
+      body: event.body
     });
 
     // Get response data
