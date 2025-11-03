@@ -6,7 +6,7 @@ import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      base: '/',
+      base: '/margeitpro/',
       server: {
         port: 3002,
         host: '0.0.0.0',
